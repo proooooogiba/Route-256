@@ -3,127 +3,114 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"sort"
+	"strconv"
+	"strings"
 )
 
 type Apple uint32
 
-type Bag struct {
-	Apple Apple
-}
-
 type Box struct {
-	Bags []Bag
+	Bags []*Apple
 }
 
 type Car struct {
-	Boxes []Box
+	Boxes []*Box
 }
 
-func applesToBag(appleNumber uint32) ([]Bag, error) {
-	if appleNumber == 0 {
-		return nil, errors.New("number of apples can't be zero")
-	}
-	var i uint32
-	var bags = make([]Bag, appleNumber)
+func applesToBag(appleNumber uint32) ([]*Apple, error) {
+	var bags = make([]*Apple, appleNumber)
 
-	for i = 0; i < appleNumber; i++ {
-		bags[i] = Bag{Apple: Apple(i + 1)}
+	for i := range bags {
+		apple := Apple(i + 1)
+		bags[i] = &apple
 	}
 	return bags, nil
 }
 
-func packageBagsToBoxes(bags []Bag, numberOfApplesInBox uint32) ([]Box, error) {
-	if numberOfApplesInBox == 0 {
-		return nil, errors.New("number of apples in box can't be zero")
+func packageBagsToBoxes(bags []*Apple, numberOfApplesInBox int) ([]*Box, error) {
+	if numberOfApplesInBox <= 0 {
+		return nil, errors.New("number of apples in box can't be zero or negative")
 	}
 
 	sort.Slice(bags, func(i, j int) bool {
-		return bags[i].Apple > bags[j].Apple
+		return *bags[i] > *bags[j]
 	})
 
-	var numberOfBoxes, i uint32
-	bagsLength := uint32(len(bags))
-	numberOfBoxes = bagsLength / numberOfApplesInBox
-	var boxes = make([]Box, numberOfBoxes)
+	bagsLength := len(bags)
 
-	for i = 0; i < numberOfBoxes; i++ {
-		boxes[i] = Box{Bags: bags[i*numberOfApplesInBox : i*numberOfApplesInBox+numberOfApplesInBox]}
+	numberOfBoxes := bagsLength / numberOfApplesInBox
+	if bagsLength%numberOfApplesInBox != 0 {
+		numberOfBoxes++
 	}
 
-	if bagsLength%numberOfApplesInBox == 0 {
-		return boxes, nil
+	var boxes = make([]*Box, numberOfBoxes)
+
+	for i := range boxes {
+		start := i * numberOfApplesInBox
+		end := (i + 1) * numberOfApplesInBox
+		if end > bagsLength {
+			end = bagsLength
+		}
+		boxes[i] = &Box{Bags: bags[start:end]}
 	}
-	numberOfApplesInLastBox := bagsLength % numberOfApplesInBox
-	boxes = append(boxes, Box{})
-	bagsLength++
-	boxes[numberOfBoxes] = Box{Bags: bags[bagsLength-1-numberOfApplesInLastBox : bagsLength-1]}
 
 	return boxes, nil
 }
 
-func boxesToCars(boxes []Box, numberOfCars uint32) ([]Car, error) {
-	if numberOfCars == 0 {
-		return nil, errors.New("number of cars can't be zero")
+func boxesToCars(boxes []*Box, numberOfCars int) ([]*Car, error) {
+	if numberOfCars <= 0 {
+		return nil, errors.New("number of cars can't be zero or negative")
 	}
 
-	var i uint32
-	numberOfBoxes := uint32(len(boxes))
-	boxesInCar := numberOfBoxes / numberOfCars
+	var cars = make([]*Car, numberOfCars)
 
-	var cars = make([]Car, numberOfCars)
-
-	for i = 0; i < numberOfCars; i++ {
-		cars[i] = Car{Boxes: make([]Box, boxesInCar)}
-	}
-
-	numberOfCarsWithExtraBox := numberOfBoxes % numberOfCars
-	for i = 0; i < numberOfCarsWithExtraBox; i++ {
-		cars[i] = Car{Boxes: make([]Box, boxesInCar+1)}
-	}
-
-	for i = 0; i < numberOfBoxes; i++ {
-		cars[i%numberOfCars].Boxes[i/numberOfCars] = boxes[i]
+	for i := range boxes {
+		if cars[i%numberOfCars] == nil {
+			cars[i%numberOfCars] = &Car{}
+		}
+		cars[i%numberOfCars].Boxes = append(cars[i%numberOfCars].Boxes, boxes[i])
 	}
 
 	return cars, nil
 }
 
-func carsFormatString(cars []Car) string {
-	var formatString string
+func carsFormatString(cars []*Car) string {
+	builder := strings.Builder{}
 	carNumber := len(cars)
-	for i := 0; i < carNumber; i++ {
-		boxNumber := len(cars[i].Boxes)
-		for j := 0; j < boxNumber; j++ {
-			formatString += fmt.Sprint("Машина: ", i+1, ", Ящик: ", j*carNumber+i+1, ", Яблоки:  [")
-			bagsNumber := len(cars[i].Boxes[j].Bags)
-			for k := 0; k < bagsNumber-1; k++ {
-				formatString += fmt.Sprint(cars[i].Boxes[j].Bags[k].Apple, ", ")
+	for i, car := range cars {
+		for j, box := range car.Boxes {
+			builder.WriteString("Машина: ")
+			builder.WriteString(strconv.Itoa(i + 1))
+			builder.WriteString(", Ящик: ")
+			builder.WriteString(strconv.Itoa(j*carNumber + i + 1))
+			builder.WriteString(", Яблоки:  [")
+			for k, apple := range box.Bags {
+				builder.WriteString(strconv.Itoa(int(*apple)))
+				if k != len(box.Bags)-1 {
+					builder.WriteString(", ")
+				}
 			}
-			if bagsNumber > 0 {
-				formatString += fmt.Sprint(cars[i].Boxes[j].Bags[bagsNumber-1].Apple)
-			}
-			formatString += fmt.Sprint("]\n")
+			builder.WriteString("]\n")
 		}
 	}
+	formatString := builder.String()
 	return formatString
 }
 
 func main() {
 	bags, err := applesToBag(100)
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Error: %s", err))
-		return
+		log.Fatal(err)
 	}
-	boxes, err := packageBagsToBoxes(bags, 10)
+	boxes, err := packageBagsToBoxes(bags, 7)
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Error: %s", err))
-		return
+		log.Fatal(err)
 	}
-	cars, err := boxesToCars(boxes, 2)
+	cars, err := boxesToCars(boxes, 3)
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Error: %s", err))
-		return
+		log.Fatal(err)
 	}
 	formatCarString := carsFormatString(cars)
 	fmt.Println(formatCarString)

@@ -9,31 +9,44 @@ func Test_applesToBag(t *testing.T) {
 	type args struct {
 		appleNumber uint32
 	}
+	apple1 := Apple(1)
+	apple2 := Apple(2)
+	apple3 := Apple(3)
+	apple4 := Apple(4)
+	apple5 := Apple(5)
+	apple6 := Apple(6)
+	apple7 := Apple(7)
+	apple8 := Apple(8)
+	apple9 := Apple(9)
+	apple10 := Apple(10)
+
 	tests := []struct {
 		name    string
 		args    args
-		want    []Bag
+		want    []*Apple
 		wantErr bool
 	}{
 		{
 			name:    "input number - 5",
 			args:    struct{ appleNumber uint32 }{appleNumber: 5},
-			want:    []Bag{{1}, {2}, {3}, {4}, {5}},
+			want:    []*Apple{&apple1, &apple2, &apple3, &apple4, &apple5},
 			wantErr: false,
 		},
 		{
 			name:    "invalid input - 0",
 			args:    struct{ appleNumber uint32 }{appleNumber: 0},
-			want:    nil,
-			wantErr: true,
+			want:    []*Apple{},
+			wantErr: false,
 		},
 		{
 			name: "input number - 10",
 			args: struct{ appleNumber uint32 }{appleNumber: 10},
-			want: []Bag{{1}, {2}, {3},
-				{4}, {5}, {6},
-				{7}, {8}, {9},
-				{10}},
+			want: []*Apple{
+				&apple1, &apple2, &apple3,
+				&apple4, &apple5, &apple6,
+				&apple7, &apple8, &apple9,
+				&apple10,
+			},
 			wantErr: false,
 		},
 	}
@@ -53,91 +66,60 @@ func Test_applesToBag(t *testing.T) {
 
 func Test_boxesToCars(t *testing.T) {
 	type args struct {
-		boxes        []Box
-		numberOfCars uint32
+		boxes        []*Box
+		numberOfCars int
+	}
+	apple1 := Apple(1)
+	apple2 := Apple(2)
+	apple3 := Apple(3)
+	apple4 := Apple(4)
+	apple5 := Apple(5)
+	apple6 := Apple(6)
+	apple7 := Apple(7)
+	apple8 := Apple(8)
+	apple9 := Apple(9)
+
+	boxes := []*Box{
+		{Bags: []*Apple{&apple1, &apple2, &apple3}},
+		{Bags: []*Apple{&apple3, &apple4, &apple5}},
 	}
 
-	boxes := []Box{
-		{Bags: []Bag{
-			{Apple: Apple(1)},
-			{Apple: Apple(2)},
-			{Apple: Apple(3)},
+	cars := []*Car{
+		{Boxes: []*Box{
+			{Bags: []*Apple{&apple1, &apple2, &apple3}},
 		}},
-		{Bags: []Bag{
-			{Apple: Apple(3)},
-			{Apple: Apple(4)},
-			{Apple: Apple(5)},
-		}},
-	}
-
-	cars := []Car{
-		{Boxes: []Box{
-			{Bags: []Bag{
-				{Apple: Apple(1)},
-				{Apple: Apple(2)},
-				{Apple: Apple(3)},
-			}},
-		}},
-		{Boxes: []Box{
-			{Bags: []Bag{
-				{Apple: Apple(3)},
-				{Apple: Apple(4)},
-				{Apple: Apple(5)},
-			}},
+		{Boxes: []*Box{
+			{Bags: []*Apple{&apple3, &apple4, &apple5}},
 		}},
 	}
 
-	boxesWithDiffrentNumberOfBags := []Box{
-		{Bags: []Bag{
-			{Apple: Apple(1)},
-			{Apple: Apple(2)},
-			{Apple: Apple(3)},
-		}},
-		{Bags: []Bag{
-			{Apple: Apple(4)},
-			{Apple: Apple(5)},
-			{Apple: Apple(6)},
-		}},
-		{Bags: []Bag{
-			{Apple: Apple(7)},
-			{Apple: Apple(8)},
-			{Apple: Apple(9)},
-		}},
+	boxesWithDifferentNumberOfBags := []*Box{
+		{Bags: []*Apple{&apple1, &apple2, &apple3}},
+		{Bags: []*Apple{&apple4, &apple5, &apple6}},
+		{Bags: []*Apple{&apple7, &apple8, &apple9}},
 	}
 
-	carsWithExtraBoxes := []Car{
-		{Boxes: []Box{
-			{Bags: []Bag{
-				{Apple: Apple(1)},
-				{Apple: Apple(2)},
-				{Apple: Apple(3)},
-			}},
-			{Bags: []Bag{
-				{Apple: Apple(7)},
-				{Apple: Apple(8)},
-				{Apple: Apple(9)},
-			}},
+	carsWithExtraBoxes := []*Car{
+		{Boxes: []*Box{
+			{Bags: []*Apple{&apple1, &apple2, &apple3}},
+			{Bags: []*Apple{&apple7, &apple8, &apple9}},
 		}},
-		{Boxes: []Box{
-			{Bags: []Bag{
-				{Apple: Apple(4)},
-				{Apple: Apple(5)},
-				{Apple: Apple(6)},
-			}},
+		{Boxes: []*Box{
+			{Bags: []*Apple{&apple4, &apple5, &apple6}},
 		}},
 	}
 
 	tests := []struct {
 		name    string
 		args    args
-		want    []Car
+		want    []*Car
 		wantErr bool
 	}{
 		{
 			name: "valid input packed to 2 cars",
 			args: struct {
-				boxes        []Box
-				numberOfCars uint32
+				boxes        []*Box
+				numberOfCars int
 			}{boxes: boxes, numberOfCars: 2},
 			want:    cars,
 			wantErr: false,
@@ -145,8 +127,8 @@ func Test_boxesToCars(t *testing.T) {
 		{
 			name: "invalid input - number of cars is zero",
 			args: struct {
-				boxes        []Box
-				numberOfCars uint32
+				boxes        []*Box
+				numberOfCars int
 			}{boxes: nil, numberOfCars: 0},
 			want:    nil,
 			wantErr: true,
@@ -154,9 +136,9 @@ func Test_boxesToCars(t *testing.T) {
 		{
 			name: "empty input packed to 2 cars",
 			args: struct {
-				boxes        []Box
-				numberOfCars uint32
-			}{boxes: boxesWithDiffrentNumberOfBags, numberOfCars: 2},
+				boxes        []*Box
+				numberOfCars int
+			}{boxes: boxesWithDifferentNumberOfBags, numberOfCars: 2},
 			want:    carsWithExtraBoxes,
 			wantErr: false,
 		},
@@ -177,48 +159,42 @@ func Test_boxesToCars(t *testing.T) {
 
 func Test_packageBagsToBoxes(t *testing.T) {
 	type args struct {
-		bags                []Bag
-		numberOfApplesInBox uint32
+		bags                []*Apple
+		numberOfApplesInBox int
 	}
 
-	bags := []Bag{
-		{Apple: Apple(1)},
-		{Apple: Apple(3)},
-		{Apple: Apple(2)},
-		{Apple: Apple(4)},
+	apple1 := Apple(1)
+	apple2 := Apple(2)
+	apple3 := Apple(3)
+	apple4 := Apple(4)
+
+	bags := []*Apple{&apple1, &apple2, &apple3, &apple4}
+	boxesTwoApples := []*Box{
+		{Bags: []*Apple{&apple4, &apple3}},
+		{Bags: []*Apple{&apple2, &apple1}},
 	}
-	boxesTwoApples := []Box{
-		{Bags: []Bag{
-			{Apple: Apple(4)},
-			{Apple: Apple(3)},
+	boxesThreeApples := []*Box{
+		{Bags: []*Apple{
+			&apple4,
+			&apple3,
+			&apple2,
 		}},
-		{Bags: []Bag{
-			{Apple: Apple(2)},
-			{Apple: Apple(1)},
-		}},
-	}
-	boxesThreeApples := []Box{
-		{Bags: []Bag{
-			{Apple: Apple(4)},
-			{Apple: Apple(3)},
-			{Apple: Apple(2)},
-		}},
-		{Bags: []Bag{
-			{Apple: Apple(1)},
+		{Bags: []*Apple{
+			&apple1,
 		}},
 	}
 
 	tests := []struct {
 		name    string
 		args    args
-		want    []Box
+		want    []*Box
 		wantErr bool
 	}{
 		{
 			name: "valid input - 2 apples in box",
 			args: struct {
-				bags                []Bag
-				numberOfApplesInBox uint32
+				bags                []*Apple
+				numberOfApplesInBox int
 			}{bags: bags, numberOfApplesInBox: 2},
 			want:    boxesTwoApples,
 			wantErr: false,
@@ -226,8 +202,8 @@ func Test_packageBagsToBoxes(t *testing.T) {
 		{
 			name: "invalid input - number of apples in bag is zero",
 			args: struct {
-				bags                []Bag
-				numberOfApplesInBox uint32
+				bags                []*Apple
+				numberOfApplesInBox int
 			}{bags: bags, numberOfApplesInBox: 0},
 			want:    nil,
 			wantErr: true,
@@ -235,8 +211,8 @@ func Test_packageBagsToBoxes(t *testing.T) {
 		{
 			name: "valid input - 3 apples in box",
 			args: struct {
-				bags                []Bag
-				numberOfApplesInBox uint32
+				bags                []*Apple
+				numberOfApplesInBox int
 			}{bags: bags, numberOfApplesInBox: 3},
 			want:    boxesThreeApples,
 			wantErr: false,
@@ -258,43 +234,33 @@ func Test_packageBagsToBoxes(t *testing.T) {
 
 func Test_carsFormatString(t *testing.T) {
 	type args struct {
-		cars []Car
+		cars []*Car
 	}
-	cars := []Car{
-		{Boxes: []Box{
-			{Bags: []Bag{
-				{Apple: Apple(1)},
-				{Apple: Apple(2)},
-				{Apple: Apple(3)},
-			}},
+
+	apple1 := Apple(1)
+	apple2 := Apple(2)
+	apple3 := Apple(3)
+	apple4 := Apple(4)
+	apple5 := Apple(5)
+	apple6 := Apple(6)
+	apple7 := Apple(7)
+
+	cars := []*Car{
+		{Boxes: []*Box{
+			{Bags: []*Apple{&apple1, &apple2, &apple3}},
 		}},
-		{Boxes: []Box{
-			{Bags: []Bag{
-				{Apple: Apple(3)},
-				{Apple: Apple(4)},
-				{Apple: Apple(5)},
-			}},
+		{Boxes: []*Box{
+			{Bags: []*Apple{&apple3, &apple4, &apple5}},
 		}},
 	}
 
-	carsWithDiffrentNumbersOfBoxes := []Car{
-		{Boxes: []Box{
-			{Bags: []Bag{
-				{Apple: Apple(1)},
-				{Apple: Apple(2)},
-				{Apple: Apple(3)},
-			}},
-			{Bags: []Bag{
-				{Apple: Apple(6)},
-				{Apple: Apple(7)},
-			}},
+	carsWithDiffrentNumbersOfBoxes := []*Car{
+		{Boxes: []*Box{
+			{Bags: []*Apple{&apple1, &apple2, &apple3}},
+			{Bags: []*Apple{&apple6, &apple7}},
 		}},
-		{Boxes: []Box{
-			{Bags: []Bag{
-				{Apple: Apple(3)},
-				{Apple: Apple(4)},
-				{Apple: Apple(5)},
-			}},
+		{Boxes: []*Box{
+			{Bags: []*Apple{&apple3, &apple4, &apple5}},
 		}},
 	}
 	tests := []struct {
@@ -304,18 +270,18 @@ func Test_carsFormatString(t *testing.T) {
 	}{
 		{
 			name: "2 cars with 1 box with 3 bags in each",
-			args: struct{ cars []Car }{cars: cars},
+			args: struct{ cars []*Car }{cars: cars},
 			want: "Машина: 1, Ящик: 1, Яблоки:  [1, 2, 3]\n" +
 				"Машина: 2, Ящик: 2, Яблоки:  [3, 4, 5]\n",
 		},
 		{
 			name: "empty input",
-			args: struct{ cars []Car }{cars: nil},
+			args: struct{ cars []*Car }{cars: nil},
 			want: "",
 		},
 		{
 			name: "cars with different numbers of boxes in each",
-			args: struct{ cars []Car }{cars: carsWithDiffrentNumbersOfBoxes},
+			args: struct{ cars []*Car }{cars: carsWithDiffrentNumbersOfBoxes},
 			want: "Машина: 1, Ящик: 1, Яблоки:  [1, 2, 3]\n" +
 				"Машина: 1, Ящик: 3, Яблоки:  [6, 7]\n" +
 				"Машина: 2, Ящик: 2, Яблоки:  [3, 4, 5]\n",

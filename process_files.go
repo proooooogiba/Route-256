@@ -43,8 +43,8 @@ func run() error {
 
 	var wg sync.WaitGroup
 	goroutinesNumber := 2
-	wg.Add(goroutinesNumber)
 	for i := 0; i < goroutinesNumber; i++ {
+		wg.Add(1)
 		go process(in, out, keyWords, &wg)
 	}
 

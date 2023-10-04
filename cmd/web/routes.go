@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func routes(repo *handlers.Repository) *mux.Router {
+func routes(repo *handlers.Hotel) *mux.Router {
 	router := mux.NewRouter()
 	router.HandleFunc("/room", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {

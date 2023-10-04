@@ -14,14 +14,14 @@ import (
 	"time"
 )
 
-type Repository struct {
-	DB repository.DatabaseRepo
+type Hotel struct {
+	db repository.DatabaseRepo
 }
 
 // NewRepo creates a new repository
-func NewRepo(db *db.Database) *Repository {
-	return &Repository{
-		DB: dbrepo.NewPostgresRepo(db),
+func NewRepo(db *db.Database) *Hotel {
+	return &Hotel{
+		db: dbrepo.NewPostgresRepo(db),
 	}
 }
 
@@ -49,7 +49,7 @@ type updateReservationRequest struct {
 	RoomID    int64  `json:"room_id"`
 }
 
-func (m *Repository) GetRoomWithAllReservations(w http.ResponseWriter, r *http.Request) {
+func (m *Hotel) GetRoomWithAllReservations(w http.ResponseWriter, r *http.Request) {
 	IDStr, ok := mux.Vars(r)["id"]
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
@@ -62,7 +62,7 @@ func (m *Repository) GetRoomWithAllReservations(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	room, err := m.DB.GetRoomByID(id)
+	room, err := m.db.GetRoomByID(id)
 	if err != nil {
 		if errors.Is(err, repository.ErrObjectNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -72,7 +72,7 @@ func (m *Repository) GetRoomWithAllReservations(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	reservations, err := m.DB.GetReservationsByRoomID(id)
+	reservations, err := m.db.GetReservationsByRoomID(id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -101,7 +101,7 @@ func (m *Repository) GetRoomWithAllReservations(w http.ResponseWriter, r *http.R
 	w.WriteHeader(http.StatusOK)
 }
 
-func (m *Repository) CreateRoom(w http.ResponseWriter, r *http.Request) {
+func (m *Hotel) CreateRoom(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -121,7 +121,7 @@ func (m *Repository) CreateRoom(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt: time.Now(),
 	}
 
-	_, err = m.DB.GetRoomByName(room.Name)
+	_, err = m.db.GetRoomByName(room.Name)
 
 	if err == nil {
 		w.WriteHeader(http.StatusConflict)
@@ -133,7 +133,7 @@ func (m *Repository) CreateRoom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = m.DB.InsertRoom(room)
+	_, err = m.db.InsertRoom(room)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -141,7 +141,7 @@ func (m *Repository) CreateRoom(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (m *Repository) UpdateRoom(w http.ResponseWriter, r *http.Request) {
+func (m *Hotel) UpdateRoom(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -161,7 +161,7 @@ func (m *Repository) UpdateRoom(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt: time.Now(),
 	}
 
-	_, err = m.DB.GetRoomByID(room.ID)
+	_, err = m.db.GetRoomByID(room.ID)
 	if err != nil {
 		if errors.Is(err, repository.ErrObjectNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -171,7 +171,7 @@ func (m *Repository) UpdateRoom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = m.DB.UpdateRoom(room)
+	err = m.db.UpdateRoom(room)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -180,7 +180,7 @@ func (m *Repository) UpdateRoom(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (m *Repository) DeleteRoomWithAllReservations(w http.ResponseWriter, r *http.Request) {
+func (m *Hotel) DeleteRoomWithAllReservations(w http.ResponseWriter, r *http.Request) {
 	IDStr, ok := mux.Vars(r)["id"]
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
@@ -193,7 +193,7 @@ func (m *Repository) DeleteRoomWithAllReservations(w http.ResponseWriter, r *htt
 		return
 	}
 
-	err = m.DB.DeleteRoomByID(id)
+	err = m.db.DeleteRoomByID(id)
 	if err != nil {
 		if errors.Is(err, repository.ErrObjectNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -203,7 +203,7 @@ func (m *Repository) DeleteRoomWithAllReservations(w http.ResponseWriter, r *htt
 		return
 	}
 
-	err = m.DB.DeleteReservationsByRoomID(id)
+	err = m.db.DeleteReservationsByRoomID(id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -212,7 +212,7 @@ func (m *Repository) DeleteRoomWithAllReservations(w http.ResponseWriter, r *htt
 	w.WriteHeader(http.StatusOK)
 }
 
-func (m *Repository) GetReservation(w http.ResponseWriter, r *http.Request) {
+func (m *Hotel) GetReservation(w http.ResponseWriter, r *http.Request) {
 	IDStr, ok := mux.Vars(r)["id"]
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
@@ -225,7 +225,7 @@ func (m *Repository) GetReservation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := m.DB.GetReservationByID(id)
+	res, err := m.db.GetReservationByID(id)
 	if err != nil {
 		if errors.Is(err, repository.ErrObjectNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -249,7 +249,7 @@ func (m *Repository) GetReservation(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (m *Repository) CreateReservation(w http.ResponseWriter, r *http.Request) {
+func (m *Hotel) CreateReservation(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -273,6 +273,15 @@ func (m *Repository) CreateReservation(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	_, err = m.db.GetRoomByID(unm.RoomID)
+	if err != nil {
+		if errors.Is(err, repository.ErrObjectNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	res := models.Reservation{
 		StartDate: startDate,
@@ -282,7 +291,7 @@ func (m *Repository) CreateReservation(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt: time.Now(),
 	}
 
-	_, err = m.DB.InsertReservation(res)
+	_, err = m.db.InsertReservation(res)
 	if err != nil {
 		w.Write([]byte(err.Error()))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -291,7 +300,7 @@ func (m *Repository) CreateReservation(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (m *Repository) DeleteReservation(w http.ResponseWriter, r *http.Request) {
+func (m *Hotel) DeleteReservation(w http.ResponseWriter, r *http.Request) {
 	IDStr, ok := mux.Vars(r)["id"]
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
@@ -304,7 +313,7 @@ func (m *Repository) DeleteReservation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = m.DB.DeleteReservationByID(id)
+	err = m.db.DeleteReservationByID(id)
 	if err != nil {
 		if errors.Is(err, repository.ErrObjectNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -316,7 +325,7 @@ func (m *Repository) DeleteReservation(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (m *Repository) UpdateReservation(w http.ResponseWriter, r *http.Request) {
+func (m *Hotel) UpdateReservation(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -349,7 +358,7 @@ func (m *Repository) UpdateReservation(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt: time.Now(),
 	}
 
-	_, err = m.DB.GetReservationByID(res.ID)
+	_, err = m.db.GetReservationByID(res.ID)
 	if err != nil {
 		if errors.Is(err, repository.ErrObjectNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -359,7 +368,7 @@ func (m *Repository) UpdateReservation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = m.DB.UpdateReservation(res)
+	err = m.db.UpdateReservation(res)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

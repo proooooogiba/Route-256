@@ -35,7 +35,7 @@ func (ci *CommandInvoker) ExecuteCommand() {
 		}
 		command = &commands.FormatCommand{FileName: os.Args[2]}
 	default:
-		fmt.Println("Invalid command")
+		fmt.Println("Command isn't supported")
 		return
 	}
 	command.Execute()

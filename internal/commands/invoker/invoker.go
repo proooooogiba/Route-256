@@ -3,40 +3,43 @@ package invoker
 import (
 	"fmt"
 	"homework-3/internal/commands"
-	"os"
 )
 
 type CommandInvoker struct {
-	Args []string
+	Args     []string
+	commands []commands.Command
 }
 
 func NewCommandInvoker(Args []string) (CommandInvoker, bool) {
 	if len(Args) < 2 {
 		return CommandInvoker{}, false
 	}
-	return CommandInvoker{Args: Args}, true
+
+	invoker := CommandInvoker{Args: Args}
+	invoker.AddCommand(&commands.HelpCommand{CommandName: "help"})
+	invoker.AddCommand(&commands.SpellCommand{CommandName: "spell"})
+	invoker.AddCommand(&commands.FormatCommand{CommandName: "fmt"})
+
+	return invoker, true
+}
+
+func (ci *CommandInvoker) AddCommand(command commands.Command) {
+	ci.commands = append(ci.commands, command)
 }
 
 func (ci *CommandInvoker) ExecuteCommand() {
-	var command commands.Command
-	switch os.Args[1] {
-	case "help":
-		command = &commands.HelpCommand{}
-	case "spell":
-		if len(os.Args) < 3 {
-			fmt.Println("Please specify a word to spell")
+	commandName := ci.Args[1]
+	for _, command := range ci.commands {
+		if command.GetCommandName() == commandName {
+			err := command.GetArguments(ci.Args[2:])
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			command.Execute()
 			return
 		}
-		command = &commands.SpellCommand{Word: os.Args[2]}
-	case "fmt":
-		if len(os.Args) < 3 {
-			fmt.Println("Please specify a .txt document to format")
-			return
-		}
-		command = &commands.FormatCommand{FileName: os.Args[2]}
-	default:
-		fmt.Println("Command isn't supported")
-		return
 	}
-	command.Execute()
+
+	fmt.Println("Command isn't supported")
 }

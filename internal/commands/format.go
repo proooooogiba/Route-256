@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,10 +10,24 @@ import (
 )
 
 type FormatCommand struct {
-	FileName string
+	CommandName string
+	FileName    string
+}
+
+func (fc *FormatCommand) GetCommandName() string {
+	return fc.CommandName
+}
+
+func (fc *FormatCommand) GetArguments(args []string) error {
+	if len(args) < 1 {
+		return errors.New("please specify a .txt document to format")
+	}
+	fc.FileName = args[0]
+	return nil
 }
 
 func (fc *FormatCommand) Execute() {
+
 	file, err := os.ReadFile(fc.FileName)
 	if err != nil {
 		fmt.Println(err)

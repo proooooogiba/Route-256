@@ -1,8 +1,20 @@
 package commands
 
-import "fmt"
+import (
+	"fmt"
+)
 
-type HelpCommand struct{}
+type HelpCommand struct {
+	CommandName string
+}
+
+func (fc *HelpCommand) GetArguments(args []string) error {
+	return nil
+}
+
+func (hc *HelpCommand) GetCommandName() string {
+	return hc.CommandName
+}
 
 func (hc *HelpCommand) Execute() {
 	fmt.Println("Available commands:")

@@ -510,5 +510,41 @@ func Test_UpdateReservation(t *testing.T) {
 		// assert
 		require.Equal(t, http.StatusOK, code)
 	})
+	t.Run("fail", func(t *testing.T) {
+		t.Parallel()
+		t.Run("not found", func(t *testing.T) {
+			t.Parallel()
 
+			// arrange
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			m := mock_repository.NewMockDatabaseRepo(ctrl)
+			s := NewRepo(m)
+
+			m.EXPECT().GetReservationByID(id).Return(nil, repository.ErrObjectNotFound)
+			//m.EXPECT().UpdateReservation(gomock.Any()).Return(nil)
+			//act
+			code := s.UpdateReservation([]byte(resReq))
+
+			// assert
+			require.Equal(t, http.StatusNotFound, code)
+		})
+		t.Run("internal server error", func(t *testing.T) {
+			t.Parallel()
+
+			// arrange
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			m := mock_repository.NewMockDatabaseRepo(ctrl)
+			s := NewRepo(m)
+
+			m.EXPECT().GetReservationByID(id).Return(res, nil)
+			m.EXPECT().UpdateReservation(gomock.Any()).Return(repository.ErrInternalServer)
+			//act
+			code := s.UpdateReservation([]byte(resReq))
+
+			// assert
+			require.Equal(t, http.StatusInternalServerError, code)
+		})
+	})
 }

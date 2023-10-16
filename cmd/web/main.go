@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/viper"
 	"homework-3/internal/handlers"
 	"homework-3/internal/pkg/db"
+	"homework-3/internal/pkg/repository/dbrepo"
 	"log"
 	"net/http"
 )
@@ -21,7 +22,7 @@ func main() {
 	}
 	defer db.GetPool(ctx).Close()
 
-	hotelRepo := handlers.NewRepo(db)
+	hotelRepo := handlers.NewRepo(dbrepo.NewPostgresRepo(db))
 
 	srv := &http.Server{
 		Addr:    viper.Get("PORT").(string),

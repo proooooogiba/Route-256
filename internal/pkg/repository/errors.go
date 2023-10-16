@@ -6,4 +6,5 @@ var (
 	ErrObjectNotFound   = errors.New("object not found")
 	ErrObjectNotDelete  = errors.New("object not deleted")
 	ErrObjectNotUpdated = errors.New("object not updated")
+	ErrInternalServer   = errors.New("Internal server error")
 )

@@ -1,3 +1,5 @@
+//go:generate mockgen -source ./dbrepo.go -destination=./mocks/dbrepo.go -package=mock_repository
+
 package dbrepo
 
 import (
@@ -11,21 +13,20 @@ import (
 	"homework-3/internal/pkg/repository"
 )
 
-type postgresDBRepo struct {
-	db *db.Database
+type PostgresDBRepo struct {
+	db db.DBops
 }
 
-func NewPostgresRepo(db *db.Database) repository.DatabaseRepo {
-	return &postgresDBRepo{
-		db: db,
-	}
+func NewPostgresRepo(db db.DBops) *PostgresDBRepo {
+	return &PostgresDBRepo{db: db}
 }
 
-func (r *postgresDBRepo) InsertReservation(reservation models.Reservation) (int64, error) {
+func (r *PostgresDBRepo) InsertReservation(reservation *models.Reservation) (int64, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	var newID int64
+
 	err := r.db.ExecQueryRow(ctx, `INSERT INTO reservations(start_date, end_date, room_id, created_at, updated_at) VALUES($1,$2,$3,$4,$5) RETURNING id;`, reservation.StartDate, reservation.EndDate, reservation.RoomID, reservation.CreatedAt, reservation.UpdatedAt).Scan(&newID)
 
 	if err != nil {
@@ -35,19 +36,22 @@ func (r *postgresDBRepo) InsertReservation(reservation models.Reservation) (int6
 	return newID, nil
 }
 
-func (r *postgresDBRepo) GetReservationByID(id int64) (models.Reservation, error) {
+func (r *PostgresDBRepo) GetReservationByID(id int64) (*models.Reservation, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	var res models.Reservation
 
 	err := r.db.Get(ctx, &res, "SELECT id,start_date,end_date,room_id,created_at,updated_at FROM reservations WHERE id=$1", id)
-	if errors.Is(err, sql.ErrNoRows) {
-		return res, repository.ErrObjectNotFound
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, repository.ErrObjectNotFound
+		}
+		return nil, err
 	}
-	return res, nil
+	return &res, nil
 }
 
-func (r *postgresDBRepo) DeleteReservationByID(id int64) error {
+func (r *PostgresDBRepo) DeleteReservationByID(id int64) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -63,7 +67,7 @@ func (r *postgresDBRepo) DeleteReservationByID(id int64) error {
 	return nil
 }
 
-func (r *postgresDBRepo) UpdateReservation(res models.Reservation) error {
+func (r *PostgresDBRepo) UpdateReservation(res *models.Reservation) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	fmt.Println(res)
@@ -82,7 +86,7 @@ func (r *postgresDBRepo) UpdateReservation(res models.Reservation) error {
 	return nil
 }
 
-func (r *postgresDBRepo) InsertRoom(room models.Room) (int64, error) {
+func (r *PostgresDBRepo) InsertRoom(room *models.Room) (int64, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -94,37 +98,41 @@ func (r *postgresDBRepo) InsertRoom(room models.Room) (int64, error) {
 	return newID, nil
 }
 
-func (r *postgresDBRepo) GetRoomByID(id int64) (models.Room, error) {
+func (r *PostgresDBRepo) GetRoomByID(id int64) (*models.Room, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	var room models.Room
 
 	err := r.db.Get(ctx, &room, "SELECT id,name,cost,created_at,updated_at FROM rooms WHERE id=$1", id)
 
-	if errors.Is(err, pgx.ErrNoRows) {
-		return room, repository.ErrObjectNotFound
-	} else if err != nil {
-		return room, err
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, repository.ErrObjectNotFound
+		}
+		return nil, err
 	}
-	return room, nil
+
+	return &room, nil
 }
 
-func (r *postgresDBRepo) GetRoomByName(name string) (models.Room, error) {
+func (r *PostgresDBRepo) GetRoomByName(name string) (*models.Room, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	var room models.Room
 
 	err := r.db.Get(ctx, &room, "SELECT id,name,cost,created_at,updated_at FROM rooms WHERE name=$1", name)
 
-	if errors.Is(err, pgx.ErrNoRows) {
-		return room, repository.ErrObjectNotFound
-	} else if err != nil {
-		return room, err
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, repository.ErrObjectNotFound
+		}
+		return nil, err
 	}
-	return room, nil
+
+	return &room, nil
 }
 
-func (r *postgresDBRepo) DeleteRoomByID(id int64) error {
+func (r *PostgresDBRepo) DeleteRoomByID(id int64) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -140,7 +148,7 @@ func (r *postgresDBRepo) DeleteRoomByID(id int64) error {
 	return nil
 }
 
-func (r *postgresDBRepo) UpdateRoom(room models.Room) error {
+func (r *PostgresDBRepo) UpdateRoom(room *models.Room) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -158,14 +166,14 @@ func (r *postgresDBRepo) UpdateRoom(room models.Room) error {
 	return nil
 }
 
-func (r *postgresDBRepo) GetReservationsByRoomID(roomID int64) ([]models.Reservation, error) {
+func (r *PostgresDBRepo) GetReservationsByRoomID(roomID int64) ([]*models.Reservation, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	var reservations []models.Reservation
+	var reservations []*models.Reservation
 
 	rows, err := r.db.ExecQueryRows(ctx, "SELECT id,start_date,end_date,room_id,created_at,updated_at FROM reservations WHERE room_id=$1", roomID)
 	if err != nil {
-		return reservations, err
+		return nil, err
 	}
 
 	for rows.Next() {
@@ -179,24 +187,44 @@ func (r *postgresDBRepo) GetReservationsByRoomID(roomID int64) ([]models.Reserva
 			&res.UpdatedAt,
 		)
 		if err != nil {
-			return reservations, err
+			return nil, err
 		}
-		reservations = append(reservations, res)
+		reservations = append(reservations, &res)
 	}
 
 	if err = rows.Err(); err != nil {
-		return reservations, err
+		return nil, err
 	}
 
 	return reservations, nil
 }
 
-func (r *postgresDBRepo) DeleteReservationsByRoomID(roomID int64) error {
+func (r *PostgresDBRepo) DeleteReservationsByRoomID(roomID int64) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	_, err := r.db.Exec(ctx, "DELETE FROM reservations WHERE room_id=$1", roomID)
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+type MockRow struct {
+	id int64
+}
+
+// Scan is a mock implementation of the pgx.Row's Scan method
+func (r *MockRow) Scan(dest ...interface{}) error {
+	if len(dest) < 1 {
+		return fmt.Errorf("No destination provided")
+	}
+
+	switch d := dest[0].(type) {
+	case *int64:
+		*d = r.id
+	default:
+		return fmt.Errorf("Unsupported destination type: %T", dest[0])
+	}
+
 	return nil
 }

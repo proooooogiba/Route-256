@@ -12,9 +12,29 @@ func routes(repo *handlers.Hotel) *mux.Router {
 	router.HandleFunc("/room", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
-			repo.CreateRoom(w, r)
+			body, status := handlers.GetBodyFromRequest(r)
+			if status != http.StatusOK {
+				w.WriteHeader(status)
+				return
+			}
+			status = repo.CreateRoom(body)
+			if status != http.StatusOK {
+				w.WriteHeader(status)
+				return
+			}
+			w.WriteHeader(status)
 		case http.MethodPut:
-			repo.UpdateRoom(w, r)
+			body, status := handlers.GetBodyFromRequest(r)
+			if status != http.StatusOK {
+				w.WriteHeader(status)
+				return
+			}
+			status = repo.UpdateRoom(body)
+			if status != http.StatusOK {
+				w.WriteHeader(status)
+				return
+			}
+			w.WriteHeader(status)
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			fmt.Fprintf(w, "Method not allowed")
@@ -24,9 +44,23 @@ func routes(repo *handlers.Hotel) *mux.Router {
 	router.HandleFunc(fmt.Sprintf("/room/{id:[0-9]+}"), func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			repo.GetRoomWithAllReservations(w, r)
+			id, status := handlers.ParseGetID(r)
+			if status != http.StatusOK {
+				w.WriteHeader(status)
+				return
+			}
+			jsonRoom, jsonReservations, status := repo.GetRoomWithAllReservations(id)
+			w.WriteHeader(status)
+			w.Write(jsonRoom)
+			w.Write(jsonReservations)
 		case http.MethodDelete:
-			repo.DeleteRoomWithAllReservations(w, r)
+			id, status := handlers.ParseGetID(r)
+			if status != http.StatusOK {
+				w.WriteHeader(status)
+				return
+			}
+			status = repo.DeleteRoomWithAllReservations(id)
+			w.WriteHeader(status)
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			fmt.Fprintf(w, "Method not allowed")
@@ -36,9 +70,21 @@ func routes(repo *handlers.Hotel) *mux.Router {
 	router.HandleFunc(fmt.Sprintf("/reservation"), func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
-			repo.CreateReservation(w, r)
+			body, status := handlers.GetBodyFromRequest(r)
+			if status != http.StatusOK {
+				w.WriteHeader(status)
+				return
+			}
+			status = repo.CreateReservation(body)
+			w.WriteHeader(status)
 		case http.MethodPut:
-			repo.UpdateReservation(w, r)
+			body, status := handlers.GetBodyFromRequest(r)
+			if status != http.StatusOK {
+				w.WriteHeader(status)
+				return
+			}
+			status = repo.UpdateReservation(body)
+			w.WriteHeader(status)
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			fmt.Fprintf(w, "Method not allowed")
@@ -48,9 +94,22 @@ func routes(repo *handlers.Hotel) *mux.Router {
 	router.HandleFunc(fmt.Sprintf("/reservation/{id:[0-9]}"), func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			repo.GetReservation(w, r)
+			key, status := handlers.ParseGetID(r)
+			if status != http.StatusOK {
+				w.WriteHeader(status)
+				return
+			}
+			data, status := repo.GetReservation(key)
+			w.WriteHeader(status)
+			w.Write(data)
 		case http.MethodDelete:
-			repo.DeleteReservation(w, r)
+			key, status := handlers.ParseGetID(r)
+			if status != http.StatusOK {
+				w.WriteHeader(status)
+				return
+			}
+			status = repo.DeleteReservation(key)
+			w.WriteHeader(status)
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			fmt.Fprintf(w, "Method not allowed")

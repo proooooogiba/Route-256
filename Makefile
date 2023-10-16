@@ -17,3 +17,22 @@ test-migration-up:
 test-migration-down:
 	goose -dir "$(MIGRATION_FOLDER)" postgres "$(POSTGRES_SETUP_TEST)" down
 
+.PHONY: integration-test
+integration-test:
+	go test -tags=integration -v -cover ./tests
+
+.PHONY: unit-test
+unit-test:
+	go test -v ./...
+
+.PHONY: unit-test-coverage
+unit-test-coverage:
+	go test -v ./... -coverprofile=coverage.out
+
+.PHONY: compose-up
+compose-up:
+	docker-compose up -d postgres
+
+.PHONY: compose-rm
+compose-rm:
+	docker-compose down

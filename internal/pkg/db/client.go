@@ -19,10 +19,10 @@ func NewDB(ctx context.Context) (*Database, error) {
 }
 
 func generateDsn() string {
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+	return fmt.Sprintf("host=%s port=%s user=test password=%s dbname=%s sslmode=disable",
 		viper.Get("HOST"),
 		viper.Get("POSTGRES_PORT"),
-		viper.Get("USER"),
+		//viper.Get("USER"),
 		viper.Get("PASSWORD"),
 		viper.Get("DBNAME"))
 }

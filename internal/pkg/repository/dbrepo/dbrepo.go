@@ -4,9 +4,7 @@ package dbrepo
 
 import (
 	"context"
-	"database/sql"
 	"errors"
-	"fmt"
 	"github.com/jackc/pgx/v4"
 	"homework-3/internal/pkg/db"
 	"homework-3/internal/pkg/models"
@@ -43,7 +41,7 @@ func (r *PostgresDBRepo) GetReservationByID(id int64) (*models.Reservation, erro
 
 	err := r.db.Get(ctx, &res, "SELECT id,start_date,end_date,room_id,created_at,updated_at FROM reservations WHERE id=$1", id)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, repository.ErrObjectNotFound
 		}
 		return nil, err
@@ -70,7 +68,6 @@ func (r *PostgresDBRepo) DeleteReservationByID(id int64) error {
 func (r *PostgresDBRepo) UpdateReservation(res *models.Reservation) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	fmt.Println(res)
 	result, err := r.db.Exec(ctx, "UPDATE reservations set start_date = $1, end_date = $2, room_id = $3, updated_at = $4 where id = $5",
 		res.StartDate,
 		res.EndDate,
@@ -171,6 +168,11 @@ func (r *PostgresDBRepo) GetReservationsByRoomID(roomID int64) ([]*models.Reserv
 	defer cancel()
 	var reservations []*models.Reservation
 
+	_, err := r.GetRoomByID(roomID)
+	if err != nil {
+		return nil, err
+	}
+
 	rows, err := r.db.ExecQueryRows(ctx, "SELECT id,start_date,end_date,room_id,created_at,updated_at FROM reservations WHERE room_id=$1", roomID)
 	if err != nil {
 		return nil, err
@@ -196,35 +198,25 @@ func (r *PostgresDBRepo) GetReservationsByRoomID(roomID int64) ([]*models.Reserv
 		return nil, err
 	}
 
+	if reservations == nil {
+		return nil, repository.ErrObjectNotFound
+	}
+
 	return reservations, nil
 }
 
 func (r *PostgresDBRepo) DeleteReservationsByRoomID(roomID int64) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	_, err := r.db.Exec(ctx, "DELETE FROM reservations WHERE room_id=$1", roomID)
+
+	_, err := r.GetRoomByID(roomID)
 	if err != nil {
 		return err
 	}
-	return nil
-}
 
-type MockRow struct {
-	id int64
-}
-
-// Scan is a mock implementation of the pgx.Row's Scan method
-func (r *MockRow) Scan(dest ...interface{}) error {
-	if len(dest) < 1 {
-		return fmt.Errorf("No destination provided")
+	_, err = r.db.Exec(ctx, "DELETE FROM reservations WHERE room_id=$1", roomID)
+	if err != nil {
+		return err
 	}
-
-	switch d := dest[0].(type) {
-	case *int64:
-		*d = r.id
-	default:
-		return fmt.Errorf("Unsupported destination type: %T", dest[0])
-	}
-
 	return nil
 }

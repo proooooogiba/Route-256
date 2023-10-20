@@ -10,15 +10,16 @@ type CommandInvoker struct {
 	commands []commands.Command
 }
 
-func NewCommandInvoker(Args []string) (CommandInvoker, bool) {
+func NewCommandInvoker(Args []string, commandsList []commands.Command) (CommandInvoker, bool) {
 	if len(Args) < 2 {
 		return CommandInvoker{}, false
 	}
 
 	invoker := CommandInvoker{Args: Args}
-	invoker.AddCommand(&commands.HelpCommand{CommandName: "help"})
-	invoker.AddCommand(&commands.SpellCommand{CommandName: "spell"})
-	invoker.AddCommand(&commands.FormatCommand{CommandName: "fmt"})
+
+	for _, command := range commandsList {
+		invoker.AddCommand(command)
+	}
 
 	return invoker, true
 }

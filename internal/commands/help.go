@@ -4,19 +4,17 @@ import (
 	"fmt"
 )
 
-type HelpCommand struct {
-	CommandName string
-}
+type HelpCommand struct{}
 
 func (fc *HelpCommand) GetArguments(args []string) error {
 	return nil
 }
 
-func (hc *HelpCommand) GetCommandName() string {
-	return hc.CommandName
+func (fc *HelpCommand) GetCommandName() string {
+	return "help"
 }
 
-func (hc *HelpCommand) Execute() {
+func (fc *HelpCommand) Execute() {
 	fmt.Println("Available commands:")
 	fmt.Println("- help: Show available commands")
 	fmt.Println("- spell: Spell a word")

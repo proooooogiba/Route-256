@@ -10,12 +10,11 @@ import (
 )
 
 type FormatCommand struct {
-	CommandName string
-	FileName    string
+	FileName string
 }
 
 func (fc *FormatCommand) GetCommandName() string {
-	return fc.CommandName
+	return "fmt"
 }
 
 func (fc *FormatCommand) GetArguments(args []string) error {

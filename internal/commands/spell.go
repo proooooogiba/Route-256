@@ -7,8 +7,7 @@ import (
 )
 
 type SpellCommand struct {
-	CommandName string
-	Word        string
+	Word string
 }
 
 func (sc *SpellCommand) GetArguments(args []string) error {
@@ -20,7 +19,7 @@ func (sc *SpellCommand) GetArguments(args []string) error {
 }
 
 func (sc *SpellCommand) GetCommandName() string {
-	return sc.CommandName
+	return "spell"
 }
 
 func (sc *SpellCommand) Execute() {

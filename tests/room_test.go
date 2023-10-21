@@ -70,6 +70,7 @@ func Test_UpdateRoom(t *testing.T) {
 
 		//assert
 		require.NoError(t, err)
+		require.NotEqual(t, room, update_room)
 	})
 
 	t.Run("fail - invalid id", func(t *testing.T) {

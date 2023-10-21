@@ -1,17 +1,17 @@
-package handlers
+package main
 
-type createRoomRequest struct {
+type CreateRoomRequest struct {
 	Name string  `json:"name"`
 	Cost float64 `json:"cost"`
 }
 
-type updateRoomRequest struct {
+type UpdateRoomRequest struct {
 	ID   int64   `json:"id"`
 	Name string  `json:"name"`
 	Cost float64 `json:"cost"`
 }
 
-type createReservationRequest struct {
+type CreateReservationRequest struct {
 	StartDate string `json:"start_date"`
 	EndDate   string `json:"end_date"`
 	RoomID    int64  `json:"room_id"`

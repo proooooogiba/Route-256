@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -10,7 +9,6 @@ import (
 	"homework-3/internal/pkg/repository"
 	mock_repository "homework-3/internal/pkg/repository/mocks"
 	"homework-3/tests/fixtures"
-	"net/http"
 	"testing"
 )
 
@@ -39,11 +37,11 @@ func Test_GetRoomWithAllReservations(t *testing.T) {
 			m.EXPECT().GetReservationsByRoomID(id).Return(nil, nil)
 
 			//act
-			getRoom, getReservations, code := s.GetRoomWithAllReservations(id)
+			getRoom, getReservations, err := s.GetRoomWithAllReservations(id)
 
 			// assert
-			require.Equal(t, http.StatusOK, code)
-			assert.Equal(t, "{\"id\":1,\"name\":\"Lux\",\"cost\":1000,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"}", string(getRoom))
+			require.Nil(t, err)
+			assert.Equal(t, room, getRoom)
 			assert.Nil(t, getReservations)
 		})
 		t.Run("with reservations", func(t *testing.T) {
@@ -58,13 +56,12 @@ func Test_GetRoomWithAllReservations(t *testing.T) {
 			m.EXPECT().GetRoomByID(id).Return(room, nil)
 			m.EXPECT().GetReservationsByRoomID(id).Return(reservations, nil)
 			//act
-			getRoom, getReservations, code := s.GetRoomWithAllReservations(id)
+			getRoom, getReservations, err := s.GetRoomWithAllReservations(id)
 
 			// assert
-			require.Equal(t, http.StatusOK, code)
-			assert.Equal(t, "{\"id\":1,\"name\":\"Lux\",\"cost\":1000,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"}", string(getRoom))
-			assert.Equal(t, "\nnull\nnull\n{\"id\":1,\"start_date\":\"2023-11-08T00:00:00Z\",\"end_date\":\"2023-11-17T00:00:00Z\",\"room_id\":1,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"}\n"+
-				"{\"id\":2,\"start_date\":\"2023-10-08T00:00:00Z\",\"end_date\":\"2023-10-17T00:00:00Z\",\"room_id\":1,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"}\n", string(getReservations))
+			require.Nil(t, err)
+			assert.Equal(t, room, getRoom)
+			assert.Equal(t, reservations, getReservations)
 		})
 	})
 
@@ -82,10 +79,10 @@ func Test_GetRoomWithAllReservations(t *testing.T) {
 
 			m.EXPECT().GetRoomByID(id).Return(nil, repository.ErrObjectNotFound)
 			//act
-			getRoom, getReservations, code := s.GetRoomWithAllReservations(id)
+			getRoom, getReservations, err := s.GetRoomWithAllReservations(id)
 
 			// assert
-			require.Equal(t, http.StatusNotFound, code)
+			require.ErrorIs(t, ErrRoomNotFound, err)
 			assert.Nil(t, getRoom, getReservations)
 		})
 
@@ -101,10 +98,10 @@ func Test_GetRoomWithAllReservations(t *testing.T) {
 			m.EXPECT().GetRoomByID(id).Return(room, nil)
 			m.EXPECT().GetReservationsByRoomID(id).Return(nil, errors.New("Error while getting reservations by room id"))
 			//act
-			getRoom, getReservations, code := s.GetRoomWithAllReservations(id)
+			getRoom, getReservations, err := s.GetRoomWithAllReservations(id)
 
 			// assert
-			require.Equal(t, http.StatusInternalServerError, code)
+			require.ErrorIs(t, ErrInternalServer, err)
 			assert.Nil(t, getReservations, getRoom)
 		})
 	})
@@ -112,9 +109,10 @@ func Test_GetRoomWithAllReservations(t *testing.T) {
 
 func Test_CreateRoom(t *testing.T) {
 	var (
-		id      int64 = 1
-		name          = "Lux"
-		roomReq       = "{\"name\":\"Lux\", \"cost\":1000.0}"
+		id   int64 = 1
+		name       = "Lux"
+		//roomReq       = "{\"name\":\"Lux\", \"cost\":1000.0}"
+		room = fixtures.Room().Valid().V()
 	)
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
@@ -128,10 +126,10 @@ func Test_CreateRoom(t *testing.T) {
 		m.EXPECT().GetRoomByName(name).Return(nil, repository.ErrObjectNotFound)
 		m.EXPECT().InsertRoom(gomock.Any()).Return(id, nil)
 		//act
-		code := s.CreateRoom([]byte(roomReq))
+		err := s.CreateRoom(room)
 
 		// assert
-		require.Equal(t, http.StatusOK, code)
+		require.Nil(t, err)
 	})
 
 	t.Run("fail", func(t *testing.T) {
@@ -147,10 +145,10 @@ func Test_CreateRoom(t *testing.T) {
 
 			m.EXPECT().GetRoomByName(name).Return(nil, nil)
 			//act
-			code := s.CreateRoom([]byte(roomReq))
+			err := s.CreateRoom(room)
 
 			// assert
-			require.Equal(t, http.StatusConflict, code)
+			require.ErrorIs(t, ErrRoomAlreadyExists, err)
 		})
 		t.Run("room with following name already exists", func(t *testing.T) {
 			t.Parallel()
@@ -165,10 +163,10 @@ func Test_CreateRoom(t *testing.T) {
 			m.EXPECT().InsertRoom(gomock.Any()).Return(id, repository.ErrInternalServer)
 
 			//act
-			code := s.CreateRoom([]byte(roomReq))
+			err := s.CreateRoom(room)
 
 			// assert
-			require.Equal(t, http.StatusInternalServerError, code)
+			require.ErrorIs(t, ErrInternalServer, err)
 		})
 	})
 }
@@ -177,8 +175,8 @@ func Test_UpdateRoom(t *testing.T) {
 	var (
 		id int64 = 1
 		//name          = "Lux"
-		roomReq = "{\"id\":1, \"name\":\"Lux\", \"cost\":1000.0}"
-		room    = models.Room{
+		//roomReq = "{\"id\":1, \"name\":\"Lux\", \"cost\":1000.0}"
+		room = models.Room{
 			ID:   1,
 			Name: "Lux",
 			Cost: 1000.0,
@@ -198,10 +196,10 @@ func Test_UpdateRoom(t *testing.T) {
 
 		m.EXPECT().UpdateRoom(gomock.Any()).Return(nil)
 		//act
-		code := s.UpdateRoom([]byte(roomReq))
+		err := s.UpdateRoom(room)
 
 		// assert
-		require.Equal(t, http.StatusOK, code)
+		require.Nil(t, err)
 	})
 
 	t.Run("fail", func(t *testing.T) {
@@ -218,10 +216,10 @@ func Test_UpdateRoom(t *testing.T) {
 			m.EXPECT().GetRoomByID(id).Return(nil, repository.ErrObjectNotFound)
 			//m.EXPECT().UpdateRoom(gomock.Any()).Return(nil)
 			//act
-			code := s.UpdateRoom([]byte(roomReq))
+			err := s.UpdateRoom(room)
 
 			// assert
-			require.Equal(t, http.StatusNotFound, code)
+			require.ErrorIs(t, ErrRoomNotFound, err)
 		})
 
 		t.Run("room with id doesn't exists", func(t *testing.T) {
@@ -236,10 +234,10 @@ func Test_UpdateRoom(t *testing.T) {
 			m.EXPECT().GetRoomByID(id).Return(&room, nil)
 			m.EXPECT().UpdateRoom(gomock.Any()).Return(repository.ErrInternalServer)
 			//act
-			code := s.UpdateRoom([]byte(roomReq))
+			err := s.UpdateRoom(room)
 
 			// assert
-			require.Equal(t, http.StatusInternalServerError, code)
+			require.Equal(t, ErrInternalServer, err)
 		})
 	})
 
@@ -261,10 +259,10 @@ func Test_DeleteRoomWithAllReservations(t *testing.T) {
 		m.EXPECT().DeleteReservationsByRoomID(id).Return(nil)
 
 		//act
-		code := s.DeleteRoomWithAllReservations(id)
+		err := s.DeleteRoomWithAllReservations(id)
 
 		// assert
-		require.Equal(t, http.StatusOK, code)
+		require.Nil(t, err)
 	})
 
 	t.Run("fail", func(t *testing.T) {
@@ -281,10 +279,10 @@ func Test_DeleteRoomWithAllReservations(t *testing.T) {
 			m.EXPECT().DeleteRoomByID(id).Return(repository.ErrObjectNotFound)
 
 			//act
-			code := s.DeleteRoomWithAllReservations(id)
+			err := s.DeleteRoomWithAllReservations(id)
 
 			// assert
-			require.Equal(t, http.StatusNotFound, code)
+			require.ErrorIs(t, ErrRoomNotFound, err)
 		})
 
 		t.Run("internal error when delete room", func(t *testing.T) {
@@ -299,10 +297,10 @@ func Test_DeleteRoomWithAllReservations(t *testing.T) {
 			m.EXPECT().DeleteRoomByID(id).Return(repository.ErrInternalServer)
 
 			//act
-			code := s.DeleteRoomWithAllReservations(id)
+			err := s.DeleteRoomWithAllReservations(id)
 
 			// assert
-			require.Equal(t, http.StatusInternalServerError, code)
+			require.ErrorIs(t, ErrInternalServer, err)
 		})
 
 		t.Run("internal error when delete reservations", func(t *testing.T) {
@@ -318,17 +316,18 @@ func Test_DeleteRoomWithAllReservations(t *testing.T) {
 			m.EXPECT().DeleteReservationsByRoomID(id).Return(repository.ErrInternalServer)
 
 			//act
-			code := s.DeleteRoomWithAllReservations(id)
+			err := s.DeleteRoomWithAllReservations(id)
 
 			// assert
-			require.Equal(t, http.StatusInternalServerError, code)
+			require.ErrorIs(t, ErrInternalServer, err)
 		})
 	})
 }
 
 func Test_GetReservation(t *testing.T) {
 	var (
-		id int64 = 1
+		id  int64 = 1
+		res       = fixtures.Reservation().Valid().P()
 	)
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
@@ -339,13 +338,15 @@ func Test_GetReservation(t *testing.T) {
 		m := mock_repository.NewMockDatabaseRepo(ctrl)
 		s := NewRepo(m)
 
-		m.EXPECT().GetReservationByID(id).Return(fixtures.Reservation().Valid().P(), nil)
+		m.EXPECT().GetReservationByID(id).Return(res, nil)
 		//act
-		result, code := s.GetReservation(id)
+		reservation, err := s.GetReservation(id)
 
 		// assert
-		require.Equal(t, http.StatusOK, code)
-		assert.Equal(t, "{\"id\":1,\"start_date\":\"2023-11-08T00:00:00Z\",\"end_date\":\"2023-11-17T00:00:00Z\",\"room_id\":1,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"}", string(result))
+		require.Nil(t, err)
+		require.Equal(t, res, reservation)
+
+		//assert.Equal(t, "{\"id\":1,\"start_date\":\"2023-11-08T00:00:00Z\",\"end_date\":\"2023-11-17T00:00:00Z\",\"room_id\":1,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"}", string(result))
 	})
 
 	t.Run("fail", func(t *testing.T) {
@@ -357,21 +358,22 @@ func Test_GetReservation(t *testing.T) {
 		m := mock_repository.NewMockDatabaseRepo(ctrl)
 		s := NewRepo(m)
 
-		m.EXPECT().GetReservationByID(id).Return(nil, sql.ErrNoRows)
+		m.EXPECT().GetReservationByID(id).Return(nil, repository.ErrObjectNotFound)
 		//act
-		result, code := s.GetReservation(id)
+		result, err := s.GetReservation(id)
 
 		// assert
-		require.Equal(t, http.StatusInternalServerError, code)
+		require.ErrorIs(t, ErrReservationNotFound, err)
 		assert.Nil(t, result)
 	})
 }
 
 func Test_CreateReservation(t *testing.T) {
 	var (
-		id     int64 = 1
-		resReq       = "{\"start_date\":\"2023-09-15\", \"end_date\":\"2023-11-15\", \"room_id\":1}"
-		room         = fixtures.Room().Valid().V()
+		id int64 = 1
+		//resReq       = "{\"start_date\":\"2023-09-15\", \"end_date\":\"2023-11-15\", \"room_id\":1}"
+		room = fixtures.Room().Valid().V()
+		res  = fixtures.Reservation().Valid().V()
 	)
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
@@ -385,10 +387,10 @@ func Test_CreateReservation(t *testing.T) {
 		m.EXPECT().GetRoomByID(id).Return(&room, nil)
 		m.EXPECT().InsertReservation(gomock.Any()).Return(id, nil)
 		//act
-		code := s.CreateReservation([]byte(resReq))
+		err := s.CreateReservation(res)
 
 		// assert
-		require.Equal(t, http.StatusOK, code)
+		require.Nil(t, err)
 	})
 
 	t.Run("fail", func(t *testing.T) {
@@ -405,10 +407,10 @@ func Test_CreateReservation(t *testing.T) {
 
 			m.EXPECT().GetRoomByID(id).Return(nil, repository.ErrObjectNotFound)
 			//act
-			code := s.CreateReservation([]byte(resReq))
+			err := s.CreateReservation(res)
 
 			// assert
-			require.Equal(t, http.StatusNotFound, code)
+			require.ErrorIs(t, ErrRoomNotFound, err)
 		})
 
 		t.Run("internal error when insert reservation", func(t *testing.T) {
@@ -423,10 +425,10 @@ func Test_CreateReservation(t *testing.T) {
 			m.EXPECT().GetRoomByID(id).Return(&room, nil)
 			m.EXPECT().InsertReservation(gomock.Any()).Return(int64(0), repository.ErrInternalServer)
 			//act
-			code := s.CreateReservation([]byte(resReq))
+			err := s.CreateReservation(res)
 
 			// assert
-			require.Equal(t, http.StatusInternalServerError, code)
+			require.ErrorIs(t, ErrInternalServer, err)
 		})
 	})
 }
@@ -444,10 +446,10 @@ func Test_DeleteReservation(t *testing.T) {
 
 		m.EXPECT().DeleteReservationByID(id).Return(nil)
 		//act
-		code := s.DeleteReservation(id)
+		err := s.DeleteReservation(id)
 
 		// assert
-		require.Equal(t, http.StatusOK, code)
+		require.Nil(t, err)
 	})
 	t.Run("fail", func(t *testing.T) {
 		t.Parallel()
@@ -462,10 +464,10 @@ func Test_DeleteReservation(t *testing.T) {
 
 			m.EXPECT().DeleteReservationByID(id).Return(repository.ErrObjectNotFound)
 			//act
-			code := s.DeleteReservation(id)
+			err := s.DeleteReservation(id)
 
 			// assert
-			require.Equal(t, http.StatusNotFound, code)
+			require.ErrorIs(t, ErrReservationNotFound, err)
 		})
 		t.Run("internal server error", func(t *testing.T) {
 			t.Parallel()
@@ -478,20 +480,19 @@ func Test_DeleteReservation(t *testing.T) {
 
 			m.EXPECT().DeleteReservationByID(id).Return(repository.ErrInternalServer)
 			//act
-			code := s.DeleteReservation(id)
+			err := s.DeleteReservation(id)
 
 			// assert
-			require.Equal(t, http.StatusInternalServerError, code)
+			require.Equal(t, ErrInternalServer, err)
 		})
 	})
-
 }
 
 func Test_UpdateReservation(t *testing.T) {
 	var (
-		id     int64 = 1
-		resReq       = "{\"id\":1, \"start_date\":\"2023-11-08\", \"end_date\":\"2023-11-17\", \"room_id\":1}"
-		res          = fixtures.Reservation().Valid().P()
+		id int64 = 1
+		//resReq       = "{\"id\":1, \"start_date\":\"2023-11-08\", \"end_date\":\"2023-11-17\", \"room_id\":1}"
+		res = fixtures.Reservation().Valid().V()
 	)
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
@@ -502,13 +503,13 @@ func Test_UpdateReservation(t *testing.T) {
 		m := mock_repository.NewMockDatabaseRepo(ctrl)
 		s := NewRepo(m)
 
-		m.EXPECT().GetReservationByID(id).Return(res, nil)
+		m.EXPECT().GetReservationByID(id).Return(&res, nil)
 		m.EXPECT().UpdateReservation(gomock.Any()).Return(nil)
 		//act
-		code := s.UpdateReservation([]byte(resReq))
+		err := s.UpdateReservation(res)
 
 		// assert
-		require.Equal(t, http.StatusOK, code)
+		require.Nil(t, err)
 	})
 	t.Run("fail", func(t *testing.T) {
 		t.Parallel()
@@ -524,10 +525,10 @@ func Test_UpdateReservation(t *testing.T) {
 			m.EXPECT().GetReservationByID(id).Return(nil, repository.ErrObjectNotFound)
 			//m.EXPECT().UpdateReservation(gomock.Any()).Return(nil)
 			//act
-			code := s.UpdateReservation([]byte(resReq))
+			err := s.UpdateReservation(res)
 
 			// assert
-			require.Equal(t, http.StatusNotFound, code)
+			require.ErrorIs(t, ErrReservationNotFound, err)
 		})
 		t.Run("internal server error", func(t *testing.T) {
 			t.Parallel()
@@ -538,13 +539,13 @@ func Test_UpdateReservation(t *testing.T) {
 			m := mock_repository.NewMockDatabaseRepo(ctrl)
 			s := NewRepo(m)
 
-			m.EXPECT().GetReservationByID(id).Return(res, nil)
+			m.EXPECT().GetReservationByID(id).Return(&res, nil)
 			m.EXPECT().UpdateReservation(gomock.Any()).Return(repository.ErrInternalServer)
 			//act
-			code := s.UpdateReservation([]byte(resReq))
+			err := s.UpdateReservation(res)
 
 			// assert
-			require.Equal(t, http.StatusInternalServerError, code)
+			require.ErrorIs(t, ErrInternalServer, err)
 		})
 	})
 }

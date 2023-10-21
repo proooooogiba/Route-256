@@ -111,8 +111,7 @@ func Test_CreateRoom(t *testing.T) {
 	var (
 		id   int64 = 1
 		name       = "Lux"
-		//roomReq       = "{\"name\":\"Lux\", \"cost\":1000.0}"
-		room = fixtures.Room().Valid().V()
+		room       = fixtures.Room().Valid().V()
 	)
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
@@ -124,7 +123,7 @@ func Test_CreateRoom(t *testing.T) {
 		s := NewRepo(m)
 
 		m.EXPECT().GetRoomByName(name).Return(nil, repository.ErrObjectNotFound)
-		m.EXPECT().InsertRoom(gomock.Any()).Return(id, nil)
+		m.EXPECT().InsertRoom(&room).Return(id, nil)
 		//act
 		err := s.CreateRoom(room)
 
@@ -160,7 +159,7 @@ func Test_CreateRoom(t *testing.T) {
 			s := NewRepo(m)
 
 			m.EXPECT().GetRoomByName(name).Return(nil, repository.ErrObjectNotFound)
-			m.EXPECT().InsertRoom(gomock.Any()).Return(id, repository.ErrInternalServer)
+			m.EXPECT().InsertRoom(&room).Return(id, repository.ErrInternalServer)
 
 			//act
 			err := s.CreateRoom(room)
@@ -173,10 +172,8 @@ func Test_CreateRoom(t *testing.T) {
 
 func Test_UpdateRoom(t *testing.T) {
 	var (
-		id int64 = 1
-		//name          = "Lux"
-		//roomReq = "{\"id\":1, \"name\":\"Lux\", \"cost\":1000.0}"
-		room = models.Room{
+		id   int64 = 1
+		room       = models.Room{
 			ID:   1,
 			Name: "Lux",
 			Cost: 1000.0,
@@ -194,7 +191,7 @@ func Test_UpdateRoom(t *testing.T) {
 
 		m.EXPECT().GetRoomByID(id).Return(&room, nil)
 
-		m.EXPECT().UpdateRoom(gomock.Any()).Return(nil)
+		m.EXPECT().UpdateRoom(&room).Return(nil)
 		//act
 		err := s.UpdateRoom(room)
 
@@ -214,7 +211,6 @@ func Test_UpdateRoom(t *testing.T) {
 			s := NewRepo(m)
 
 			m.EXPECT().GetRoomByID(id).Return(nil, repository.ErrObjectNotFound)
-			//m.EXPECT().UpdateRoom(gomock.Any()).Return(nil)
 			//act
 			err := s.UpdateRoom(room)
 
@@ -232,7 +228,7 @@ func Test_UpdateRoom(t *testing.T) {
 			s := NewRepo(m)
 
 			m.EXPECT().GetRoomByID(id).Return(&room, nil)
-			m.EXPECT().UpdateRoom(gomock.Any()).Return(repository.ErrInternalServer)
+			m.EXPECT().UpdateRoom(&room).Return(repository.ErrInternalServer)
 			//act
 			err := s.UpdateRoom(room)
 
@@ -370,10 +366,9 @@ func Test_GetReservation(t *testing.T) {
 
 func Test_CreateReservation(t *testing.T) {
 	var (
-		id int64 = 1
-		//resReq       = "{\"start_date\":\"2023-09-15\", \"end_date\":\"2023-11-15\", \"room_id\":1}"
-		room = fixtures.Room().Valid().V()
-		res  = fixtures.Reservation().Valid().V()
+		id   int64 = 1
+		room       = fixtures.Room().Valid().V()
+		res        = fixtures.Reservation().Valid().V()
 	)
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
@@ -385,7 +380,7 @@ func Test_CreateReservation(t *testing.T) {
 		s := NewRepo(m)
 
 		m.EXPECT().GetRoomByID(id).Return(&room, nil)
-		m.EXPECT().InsertReservation(gomock.Any()).Return(id, nil)
+		m.EXPECT().InsertReservation(&res).Return(id, nil)
 		//act
 		err := s.CreateReservation(res)
 
@@ -423,7 +418,7 @@ func Test_CreateReservation(t *testing.T) {
 			s := NewRepo(m)
 
 			m.EXPECT().GetRoomByID(id).Return(&room, nil)
-			m.EXPECT().InsertReservation(gomock.Any()).Return(int64(0), repository.ErrInternalServer)
+			m.EXPECT().InsertReservation(&res).Return(int64(0), repository.ErrInternalServer)
 			//act
 			err := s.CreateReservation(res)
 
@@ -490,9 +485,8 @@ func Test_DeleteReservation(t *testing.T) {
 
 func Test_UpdateReservation(t *testing.T) {
 	var (
-		id int64 = 1
-		//resReq       = "{\"id\":1, \"start_date\":\"2023-11-08\", \"end_date\":\"2023-11-17\", \"room_id\":1}"
-		res = fixtures.Reservation().Valid().V()
+		id  int64 = 1
+		res       = fixtures.Reservation().Valid().V()
 	)
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
@@ -504,7 +498,7 @@ func Test_UpdateReservation(t *testing.T) {
 		s := NewRepo(m)
 
 		m.EXPECT().GetReservationByID(id).Return(&res, nil)
-		m.EXPECT().UpdateReservation(gomock.Any()).Return(nil)
+		m.EXPECT().UpdateReservation(&res).Return(nil)
 		//act
 		err := s.UpdateReservation(res)
 
@@ -523,7 +517,6 @@ func Test_UpdateReservation(t *testing.T) {
 			s := NewRepo(m)
 
 			m.EXPECT().GetReservationByID(id).Return(nil, repository.ErrObjectNotFound)
-			//m.EXPECT().UpdateReservation(gomock.Any()).Return(nil)
 			//act
 			err := s.UpdateReservation(res)
 
@@ -540,7 +533,7 @@ func Test_UpdateReservation(t *testing.T) {
 			s := NewRepo(m)
 
 			m.EXPECT().GetReservationByID(id).Return(&res, nil)
-			m.EXPECT().UpdateReservation(gomock.Any()).Return(repository.ErrInternalServer)
+			m.EXPECT().UpdateReservation(&res).Return(repository.ErrInternalServer)
 			//act
 			err := s.UpdateReservation(res)
 

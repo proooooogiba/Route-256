@@ -59,7 +59,6 @@ func (m *Hotel) UpdateRoom(room models.Room) error {
 			return ErrRoomNotFound
 		}
 		return ErrInternalServer
-		//return http.StatusInternalServerError
 	}
 
 	err = m.db.UpdateRoom(&room)

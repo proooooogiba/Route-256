@@ -62,7 +62,7 @@ func (b *ReservationBuilder) Valid() *ReservationBuilder {
 		UpdatedAt(time.Time{})
 }
 
-func (b *ReservationBuilder) UpdatedValid() *ReservationBuilder {
+func (b *ReservationBuilder) UpdatedValidWithDifferentDates() *ReservationBuilder {
 	return Reservation().
 		ID(1).
 		StartDate(states.Reservation2StartDate).

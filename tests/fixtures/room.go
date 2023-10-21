@@ -56,7 +56,7 @@ func (b *RoomBuilder) Valid() *RoomBuilder {
 		UpdatedAt(time.Time{})
 }
 
-func (b *RoomBuilder) UpdatedValid() *RoomBuilder {
+func (b *RoomBuilder) UpdatedValidWithDifferentCost() *RoomBuilder {
 	return Room().
 		ID(1).
 		Name(states.Room1Name).

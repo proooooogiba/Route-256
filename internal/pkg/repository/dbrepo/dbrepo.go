@@ -198,10 +198,6 @@ func (r *PostgresDBRepo) GetReservationsByRoomID(roomID int64) ([]*models.Reserv
 		return nil, err
 	}
 
-	if reservations == nil {
-		return nil, repository.ErrObjectNotFound
-	}
-
 	return reservations, nil
 }
 

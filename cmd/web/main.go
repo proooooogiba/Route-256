@@ -2,12 +2,17 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/spf13/viper"
+	"homework-3/infrastructure/kafka"
+	"homework-3/internal/consumer"
 	"homework-3/internal/handlers"
 	"homework-3/internal/pkg/db"
 	"homework-3/internal/pkg/repository/dbrepo"
+	"homework-3/internal/producer"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func main() {
@@ -22,13 +27,38 @@ func main() {
 	}
 	defer db.GetPool(ctx).Close()
 
-	hotelRepo := handlers.NewRepo(dbrepo.NewPostgresRepo(db))
+	brokersValues := viper.GetString("BROKERS")
+	brokers := strings.Split(brokersValues, ",")
+
+	kafkaProducer, err := kafka.NewProducer(brokers)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	kafkaConsumer, err := consumer.NewConsumerService(brokers)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	topic := viper.Get("TOPIC").(string)
+	kafkaConsumer.StartConsume(topic)
+
+	hotelService := producer.NewService(
+		handlers.NewRepo(dbrepo.NewPostgresRepo(db)),
+		producer.NewKafkaSender(kafkaProducer, topic),
+	)
 
 	srv := &http.Server{
 		Addr:    viper.Get("PORT").(string),
-		Handler: routes(hotelRepo),
+		Handler: routes(hotelService),
 	}
 
 	err = srv.ListenAndServe()
-	log.Fatal(err)
+	fmt.Println(err)
+
+	err = kafkaProducer.Close()
+	if err != nil {
+		fmt.Println("Close producers error ", err)
+	}
+	kafkaConsumer.Close()
 }

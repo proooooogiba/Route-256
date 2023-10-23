@@ -29,10 +29,14 @@ unit-test:
 unit-test-coverage:
 	go test -v ./... -coverprofile=coverage.out
 
-.PHONY: compose-up
-compose-up:
-	docker-compose up -d postgres
+build:
+	docker-compose build
 
-.PHONY: compose-rm
-compose-rm:
+up-all:
+	docker-compose up -d postgres zookeeper kafka1 kafka2 kafka3
+
+down:
 	docker-compose down
+
+run:
+	go run ./cmd/web/*.go

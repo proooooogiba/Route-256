@@ -7,14 +7,13 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"homework-3/internal/handlers"
-	"homework-3/internal/pkg/models"
+	"homework-3/internal/producer"
 	"io"
 	"net/http"
 	"strconv"
-	"time"
 )
 
-func routes(hotel *handlers.Hotel) *mux.Router {
+func routes(hotel *producer.Service) *mux.Router {
 	router := mux.NewRouter()
 	router.HandleFunc("/room", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -24,13 +23,9 @@ func routes(hotel *handlers.Hotel) *mux.Router {
 				w.WriteHeader(status)
 				return
 			}
-			room, status := UnmarshalCreateRoomRequest(body)
-			if status != http.StatusOK {
-				w.WriteHeader(status)
-				return
-			}
 
-			err := hotel.CreateRoom(room)
+			err := hotel.CreateRoom(body, true)
+
 			switch {
 			case errors.Is(err, nil):
 				w.WriteHeader(http.StatusOK)
@@ -38,6 +33,8 @@ func routes(hotel *handlers.Hotel) *mux.Router {
 				w.WriteHeader(http.StatusInternalServerError)
 			case errors.Is(err, handlers.ErrRoomAlreadyExists):
 				w.WriteHeader(http.StatusConflict)
+			default:
+				w.WriteHeader(http.StatusInternalServerError)
 			}
 		case http.MethodPut:
 			body, status := GetBodyFromRequest(r)
@@ -46,13 +43,7 @@ func routes(hotel *handlers.Hotel) *mux.Router {
 				return
 			}
 
-			room, status := UnmarshalUpdateRoomRequest(body)
-			if status != http.StatusOK {
-				w.WriteHeader(status)
-				return
-			}
-
-			err := hotel.UpdateRoom(room)
+			err := hotel.UpdateRoom(body, true)
 			switch {
 			case errors.Is(err, nil):
 				w.WriteHeader(http.StatusOK)
@@ -60,6 +51,8 @@ func routes(hotel *handlers.Hotel) *mux.Router {
 				w.WriteHeader(http.StatusInternalServerError)
 			case errors.Is(err, handlers.ErrRoomNotFound):
 				w.WriteHeader(http.StatusNotFound)
+			default:
+				w.WriteHeader(http.StatusInternalServerError)
 			}
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
@@ -76,7 +69,7 @@ func routes(hotel *handlers.Hotel) *mux.Router {
 				return
 			}
 
-			room, reservations, err := hotel.GetRoomWithAllReservations(id)
+			room, reservations, err := hotel.GetRoomWithAllReservations(id, true)
 			if err != nil {
 				switch {
 				case errors.Is(err, nil):
@@ -85,6 +78,8 @@ func routes(hotel *handlers.Hotel) *mux.Router {
 					w.WriteHeader(http.StatusInternalServerError)
 				case errors.Is(err, handlers.ErrRoomNotFound):
 					w.WriteHeader(http.StatusNotFound)
+				default:
+					w.WriteHeader(http.StatusInternalServerError)
 				}
 				return
 			}
@@ -116,7 +111,7 @@ func routes(hotel *handlers.Hotel) *mux.Router {
 				w.WriteHeader(status)
 				return
 			}
-			err := hotel.DeleteRoomWithAllReservations(id)
+			err := hotel.DeleteRoomWithAllReservations(id, false)
 			switch {
 			case errors.Is(err, nil):
 				w.WriteHeader(http.StatusOK)
@@ -124,6 +119,8 @@ func routes(hotel *handlers.Hotel) *mux.Router {
 				w.WriteHeader(http.StatusInternalServerError)
 			case errors.Is(err, handlers.ErrReservationNotFound):
 				w.WriteHeader(http.StatusNotFound)
+			default:
+				w.WriteHeader(http.StatusInternalServerError)
 			}
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
@@ -140,13 +137,7 @@ func routes(hotel *handlers.Hotel) *mux.Router {
 				return
 			}
 
-			res, status := UnmarshalCreateReservationRequest(body)
-			if status != http.StatusOK {
-				w.WriteHeader(status)
-				return
-			}
-
-			err := hotel.CreateReservation(res)
+			err := hotel.CreateReservation(body, true)
 			switch {
 			case errors.Is(err, nil):
 				w.WriteHeader(http.StatusOK)
@@ -154,6 +145,8 @@ func routes(hotel *handlers.Hotel) *mux.Router {
 				w.WriteHeader(http.StatusInternalServerError)
 			case errors.Is(err, handlers.ErrRoomNotFound):
 				w.WriteHeader(http.StatusNotFound)
+			default:
+				w.WriteHeader(http.StatusInternalServerError)
 			}
 		case http.MethodPut:
 			body, status := GetBodyFromRequest(r)
@@ -162,13 +155,7 @@ func routes(hotel *handlers.Hotel) *mux.Router {
 				return
 			}
 
-			res, status := UnmarshalUpdateReservationRequest(body)
-			if status != http.StatusOK {
-				w.WriteHeader(status)
-				return
-			}
-
-			err := hotel.UpdateReservation(res)
+			err := hotel.UpdateReservation(body, false)
 			switch {
 			case errors.Is(err, nil):
 				w.WriteHeader(http.StatusOK)
@@ -176,6 +163,8 @@ func routes(hotel *handlers.Hotel) *mux.Router {
 				w.WriteHeader(http.StatusInternalServerError)
 			case errors.Is(err, handlers.ErrReservationNotFound):
 				w.WriteHeader(http.StatusNotFound)
+			default:
+				w.WriteHeader(http.StatusInternalServerError)
 			}
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
@@ -191,7 +180,7 @@ func routes(hotel *handlers.Hotel) *mux.Router {
 				w.WriteHeader(status)
 				return
 			}
-			res, err := hotel.GetReservation(key)
+			res, err := hotel.GetReservation(key, true)
 			if err != nil {
 				switch {
 				case errors.Is(err, handlers.ErrReservationNotFound):
@@ -216,7 +205,7 @@ func routes(hotel *handlers.Hotel) *mux.Router {
 				return
 			}
 
-			err := hotel.DeleteReservation(key)
+			err := hotel.DeleteReservation(key, false)
 			switch {
 			case errors.Is(err, nil):
 				w.WriteHeader(http.StatusOK)
@@ -254,86 +243,4 @@ func ParseGetID(req *http.Request) (int64, int) {
 		return 0, http.StatusBadRequest
 	}
 	return keyInt, http.StatusOK
-}
-
-func UnmarshalUpdateReservationRequest(body []byte) (models.Reservation, int) {
-	var unm updateReservationRequest
-	if err := json.Unmarshal(body, &unm); err != nil {
-		return models.Reservation{}, http.StatusInternalServerError
-	}
-
-	layout := "2006-01-02"
-	startDate, err := time.Parse(layout, unm.StartDate)
-	if err != nil {
-		return models.Reservation{}, http.StatusInternalServerError
-	}
-	endDate, err := time.Parse(layout, unm.EndDate)
-	if err != nil {
-		return models.Reservation{}, http.StatusInternalServerError
-	}
-
-	res := models.Reservation{
-		ID:        unm.ID,
-		StartDate: startDate,
-		EndDate:   endDate,
-		RoomID:    unm.RoomID,
-		UpdatedAt: time.Now(),
-	}
-	return res, http.StatusOK
-}
-
-func UnmarshalCreateReservationRequest(body []byte) (models.Reservation, int) {
-	var unm CreateReservationRequest
-	if err := json.Unmarshal(body, &unm); err != nil {
-		return models.Reservation{}, http.StatusInternalServerError
-	}
-
-	layout := "2006-01-02"
-	startDate, err := time.Parse(layout, unm.StartDate)
-	if err != nil {
-		return models.Reservation{}, http.StatusInternalServerError
-	}
-	endDate, err := time.Parse(layout, unm.EndDate)
-	if err != nil {
-		return models.Reservation{}, http.StatusInternalServerError
-	}
-
-	res := models.Reservation{
-		StartDate: startDate,
-		EndDate:   endDate,
-		RoomID:    unm.RoomID,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-	return res, http.StatusOK
-}
-
-func UnmarshalCreateRoomRequest(body []byte) (models.Room, int) {
-	var unm CreateRoomRequest
-	if err := json.Unmarshal(body, &unm); err != nil {
-		return models.Room{}, http.StatusInternalServerError
-	}
-
-	room := models.Room{
-		Name:      unm.Name,
-		Cost:      unm.Cost,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-	return room, http.StatusOK
-}
-
-func UnmarshalUpdateRoomRequest(body []byte) (models.Room, int) {
-	var unm UpdateRoomRequest
-	if err := json.Unmarshal(body, &unm); err != nil {
-		return models.Room{}, http.StatusInternalServerError
-	}
-
-	room := models.Room{
-		ID:        unm.ID,
-		Name:      unm.Name,
-		Cost:      unm.Cost,
-		UpdatedAt: time.Now(),
-	}
-	return room, http.StatusOK
 }

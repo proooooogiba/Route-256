@@ -5,15 +5,10 @@ import (
 	"fmt"
 	"github.com/IBM/sarama"
 	"homework-3/infrastructure/kafka"
+	"homework-3/internal/pkg/sender"
 	"strconv"
 	"time"
 )
-
-type RequestMessage struct {
-	Time   time.Time `json:"time"`
-	Method string    `json:"method"`
-	Body   string    `json:"body"`
-}
 
 type KafkaSender struct {
 	producer *kafka.Producer
@@ -28,8 +23,28 @@ func NewKafkaSender(producer *kafka.Producer, topic string) *KafkaSender {
 		0,
 	}
 }
+func (s *KafkaSender) Send(method string, body []byte, sync bool) error {
+	reqMsg := sender.RequestMessage{
+		Time:   time.Now(),
+		Method: method,
+		Body:   string(body),
+	}
+	switch sync {
+	case true:
+		err := s.sendMessage(reqMsg)
+		if err != nil {
+			return sender.ErrSendSyncMessage
+		}
+	case false:
+		err := s.sendAsyncMessage(reqMsg)
+		if err != nil {
+			return sender.ErrSendASyncMessage
+		}
+	}
+	return nil
+}
 
-func (s *KafkaSender) sendAsyncMessage(message RequestMessage) error {
+func (s *KafkaSender) sendAsyncMessage(message sender.RequestMessage) error {
 	kafkaMsg, err := s.buildMessage(message)
 	if err != nil {
 		fmt.Println("Send message marshal error", err)
@@ -43,7 +58,7 @@ func (s *KafkaSender) sendAsyncMessage(message RequestMessage) error {
 	return nil
 }
 
-func (s *KafkaSender) sendMessage(message RequestMessage) error {
+func (s *KafkaSender) sendMessage(message sender.RequestMessage) error {
 	kafkaMsg, err := s.buildMessage(message)
 	if err != nil {
 		fmt.Println("Send message marshal error", err)
@@ -59,7 +74,7 @@ func (s *KafkaSender) sendMessage(message RequestMessage) error {
 	return nil
 }
 
-func (s *KafkaSender) sendMessages(messages []RequestMessage) error {
+func (s *KafkaSender) sendMessages(messages []sender.RequestMessage) error {
 	var kafkaMsg []*sarama.ProducerMessage
 	var message *sarama.ProducerMessage
 	var err error
@@ -85,7 +100,7 @@ func (s *KafkaSender) sendMessages(messages []RequestMessage) error {
 	return nil
 }
 
-func (s *KafkaSender) buildMessage(message RequestMessage) (*sarama.ProducerMessage, error) {
+func (s *KafkaSender) buildMessage(message sender.RequestMessage) (*sarama.ProducerMessage, error) {
 	msg, err := json.Marshal(message)
 
 	if err != nil {

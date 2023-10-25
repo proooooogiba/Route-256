@@ -1,3 +1,4 @@
+//go:generate mockgen -source ./repository.go -destination=./mocks/repository.go -package=mock_repo
 package handlers
 
 import "homework-3/internal/pkg/models"

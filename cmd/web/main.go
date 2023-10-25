@@ -46,6 +46,7 @@ func main() {
 	hotelService := producer.NewService(
 		handlers.NewRepo(dbrepo.NewPostgresRepo(db)),
 		producer.NewKafkaSender(kafkaProducer, topic),
+		producer.NewRequestParser(),
 	)
 
 	srv := &http.Server{

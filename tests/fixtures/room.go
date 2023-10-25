@@ -47,6 +47,14 @@ func (b *RoomBuilder) V() models.Room {
 	return *b.instance
 }
 
+func (b *RoomBuilder) CreateValid() *RoomBuilder {
+	return Room().
+		Name(states.Room1Name).
+		Cost(1000.0).
+		CreatedAt(time.Time{}).
+		UpdatedAt(time.Time{})
+}
+
 func (b *RoomBuilder) Valid() *RoomBuilder {
 	return Room().
 		ID(1).

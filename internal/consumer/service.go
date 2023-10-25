@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/IBM/sarama"
 	"homework-3/infrastructure/kafka"
-	"homework-3/internal/producer"
+	"homework-3/internal/pkg/sender"
 )
 
 type Receiver interface {
@@ -29,7 +29,7 @@ func NewConsumerService(brokers []string) (*Service, error) {
 
 	messageHandler := map[string]HandleFunc{
 		"requests": func(message *sarama.ConsumerMessage) {
-			rm := producer.RequestMessage{}
+			rm := sender.RequestMessage{}
 			err = json.Unmarshal(message.Value, &rm)
 			if err != nil {
 				fmt.Println("Consumer error", err)

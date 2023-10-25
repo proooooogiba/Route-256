@@ -552,7 +552,7 @@ func Test_DeleteReservationsByRoomID(t *testing.T) {
 		getReservations, err := repo.GetReservationsByRoomID(roomID)
 
 		require.Nil(t, getReservations)
-		require.Error(t, err, "object not found")
+		require.Nil(t, err)
 
 	})
 

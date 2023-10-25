@@ -1,27 +1,25 @@
+//go:generate mockgen -source ./service.go -destination=./mocks/service.go -package=mock_service
+
 package producer
 
 import (
-	"encoding/json"
 	"homework-3/internal/handlers"
 	"homework-3/internal/pkg/models"
-	"time"
+	"homework-3/internal/pkg/parser"
+	"homework-3/internal/pkg/sender"
 )
-
-type Sender interface {
-	sendAsyncMessage(message RequestMessage) error
-	sendMessage(message RequestMessage) error
-	sendMessages(messages []RequestMessage) error
-}
 
 type Service struct {
 	repo   handlers.Repository
-	sender Sender
+	sender sender.Sender
+	parser parser.Parser
 }
 
-func NewService(repo handlers.Repository, sender Sender) *Service {
+func NewService(repo handlers.Repository, sender sender.Sender, parser parser.Parser) *Service {
 	return &Service{
 		repo:   repo,
 		sender: sender,
+		parser: parser,
 	}
 }
 
@@ -30,7 +28,7 @@ func (s Service) GetRoomWithAllReservations(roomID int64, sync bool) (*models.Ro
 	if err != nil {
 		return nil, nil, err
 	}
-	err = s.Send("GET", []byte(""), sync)
+	err = s.sender.Send("GET", []byte(""), sync)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -39,12 +37,7 @@ func (s Service) GetRoomWithAllReservations(roomID int64, sync bool) (*models.Ro
 }
 
 func (s Service) CreateRoom(body []byte, sync bool) error {
-	room, err := UnmarshalCreateRoomRequest(body)
-	if err != nil {
-		return err
-	}
-
-	err = s.Send("POST", body, sync)
+	room, err := s.parser.UnmarshalCreateRoomRequest(body)
 	if err != nil {
 		return err
 	}
@@ -54,11 +47,16 @@ func (s Service) CreateRoom(body []byte, sync bool) error {
 		return err
 	}
 
+	err = s.sender.Send("POST", body, sync)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (s Service) UpdateRoom(body []byte, sync bool) error {
-	room, err := UnmarshalUpdateRoomRequest(body)
+	room, err := s.parser.UnmarshalUpdateRoomRequest(body)
 	if err != nil {
 		return err
 	}
@@ -67,7 +65,7 @@ func (s Service) UpdateRoom(body []byte, sync bool) error {
 		return err
 	}
 
-	err = s.Send("PUT", body, sync)
+	err = s.sender.Send("PUT", body, sync)
 	if err != nil {
 		return err
 	}
@@ -79,7 +77,7 @@ func (s Service) DeleteRoomWithAllReservations(roomID int64, sync bool) error {
 	if err != nil {
 		return err
 	}
-	err = s.Send("DELETE", []byte(""), sync)
+	err = s.sender.Send("DELETE", []byte(""), sync)
 	if err != nil {
 		return err
 	}
@@ -92,7 +90,7 @@ func (s Service) GetReservation(resID int64, sync bool) (*models.Reservation, er
 	if err != nil {
 		return nil, err
 	}
-	err = s.Send("GET", []byte(""), sync)
+	err = s.sender.Send("GET", []byte(""), sync)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +103,7 @@ func (s Service) DeleteReservation(resID int64, sync bool) error {
 	if err != nil {
 		return err
 	}
-	err = s.Send("DELETE", []byte(""), sync)
+	err = s.sender.Send("DELETE", []byte(""), sync)
 	if err != nil {
 		return err
 	}
@@ -114,7 +112,7 @@ func (s Service) DeleteReservation(resID int64, sync bool) error {
 }
 
 func (s Service) CreateReservation(body []byte, sync bool) error {
-	reservation, err := UnmarshalCreateReservationRequest(body)
+	reservation, err := s.parser.UnmarshalCreateReservationRequest(body)
 	if err != nil {
 		return err
 	}
@@ -124,7 +122,7 @@ func (s Service) CreateReservation(body []byte, sync bool) error {
 		return err
 	}
 
-	err = s.Send("POST", body, sync)
+	err = s.sender.Send("POST", body, sync)
 	if err != nil {
 		return err
 	}
@@ -133,7 +131,7 @@ func (s Service) CreateReservation(body []byte, sync bool) error {
 }
 
 func (s Service) UpdateReservation(body []byte, sync bool) error {
-	reservation, err := UnmarshalUpdateReservationRequest(body)
+	reservation, err := s.parser.UnmarshalUpdateReservationRequest(body)
 	if err != nil {
 		return err
 	}
@@ -143,114 +141,10 @@ func (s Service) UpdateReservation(body []byte, sync bool) error {
 		return err
 	}
 
-	err = s.Send("PUT", body, sync)
+	err = s.sender.Send("PUT", body, sync)
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func (s Service) Send(method string, body []byte, sync bool) error {
-	reqMsg := RequestMessage{
-		Time:   time.Now(),
-		Method: method,
-		Body:   string(body),
-	}
-	switch sync {
-	case true:
-		err := s.sender.sendMessage(reqMsg)
-		if err != nil {
-			return handlers.ErrSendSyncMessage
-		}
-	case false:
-		err := s.sender.sendAsyncMessage(reqMsg)
-
-		if err != nil {
-			return handlers.ErrSendASyncMessage
-		}
-	}
-	return nil
-}
-
-func UnmarshalCreateRoomRequest(body []byte) (models.Room, error) {
-	var unm createRoomRequest
-	if err := json.Unmarshal(body, &unm); err != nil {
-		return models.Room{}, err
-	}
-
-	room := models.Room{
-		Name:      unm.Name,
-		Cost:      unm.Cost,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-	return room, nil
-}
-
-func UnmarshalUpdateReservationRequest(body []byte) (models.Reservation, error) {
-	var unm updateReservationRequest
-	if err := json.Unmarshal(body, &unm); err != nil {
-		return models.Reservation{}, err
-	}
-
-	layout := "2006-01-02"
-	startDate, err := time.Parse(layout, unm.StartDate)
-	if err != nil {
-		return models.Reservation{}, err
-	}
-	endDate, err := time.Parse(layout, unm.EndDate)
-	if err != nil {
-		return models.Reservation{}, err
-	}
-
-	res := models.Reservation{
-		ID:        unm.ID,
-		StartDate: startDate,
-		EndDate:   endDate,
-		RoomID:    unm.RoomID,
-		UpdatedAt: time.Now(),
-	}
-	return res, nil
-}
-
-func UnmarshalCreateReservationRequest(body []byte) (models.Reservation, error) {
-	var unm createReservationRequest
-	if err := json.Unmarshal(body, &unm); err != nil {
-		return models.Reservation{}, err
-	}
-
-	layout := "2006-01-02"
-	startDate, err := time.Parse(layout, unm.StartDate)
-	if err != nil {
-		return models.Reservation{}, err
-	}
-	endDate, err := time.Parse(layout, unm.EndDate)
-	if err != nil {
-		return models.Reservation{}, err
-	}
-
-	res := models.Reservation{
-		StartDate: startDate,
-		EndDate:   endDate,
-		RoomID:    unm.RoomID,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-	return res, nil
-}
-
-func UnmarshalUpdateRoomRequest(body []byte) (models.Room, error) {
-	var unm updateRoomRequest
-	if err := json.Unmarshal(body, &unm); err != nil {
-		return models.Room{}, err
-	}
-
-	room := models.Room{
-		ID:        unm.ID,
-		Name:      unm.Name,
-		Cost:      unm.Cost,
-		UpdatedAt: time.Now(),
-	}
-	return room, nil
 }

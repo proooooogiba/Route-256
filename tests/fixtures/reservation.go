@@ -62,6 +62,15 @@ func (b *ReservationBuilder) Valid() *ReservationBuilder {
 		UpdatedAt(time.Time{})
 }
 
+func (b *ReservationBuilder) CreateValid() *ReservationBuilder {
+	return Reservation().
+		StartDate(states.Reservation1StartDate).
+		EndDate(states.Reservation1EndDate).
+		RoomID(1).
+		CreatedAt(time.Time{}).
+		UpdatedAt(time.Time{})
+}
+
 func (b *ReservationBuilder) UpdatedValidWithDifferentDates() *ReservationBuilder {
 	return Reservation().
 		ID(1).

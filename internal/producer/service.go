@@ -24,12 +24,12 @@ func NewService(repo handlers.Repository, sender sender.Sender, parser parser.Pa
 }
 
 func (s Service) GetRoomWithAllReservations(roomID int64, sync bool) (*models.Room, []*models.Reservation, error) {
-	room, reservations, err := s.repo.GetRoomWithAllReservations(roomID)
+	err := s.sender.Send("GET", []byte(""), sync)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	err = s.sender.Send("GET", []byte(""), sync)
+	room, reservations, err := s.repo.GetRoomWithAllReservations(roomID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -43,12 +43,12 @@ func (s Service) CreateRoom(body []byte, sync bool) (int64, error) {
 		return 0, err
 	}
 
-	roomID, err := s.repo.CreateRoom(room)
+	err = s.sender.Send("POST", body, sync)
 	if err != nil {
 		return 0, err
 	}
 
-	err = s.sender.Send("POST", body, sync)
+	roomID, err := s.repo.CreateRoom(room)
 	if err != nil {
 		return 0, err
 	}
@@ -62,12 +62,12 @@ func (s Service) UpdateRoom(body []byte, sync bool) error {
 		return err
 	}
 
-	err = s.repo.UpdateRoom(room)
+	err = s.sender.Send("PUT", body, sync)
 	if err != nil {
 		return err
 	}
 
-	err = s.sender.Send("PUT", body, sync)
+	err = s.repo.UpdateRoom(room)
 	if err != nil {
 		return err
 	}
@@ -76,12 +76,12 @@ func (s Service) UpdateRoom(body []byte, sync bool) error {
 }
 
 func (s Service) DeleteRoomWithAllReservations(roomID int64, sync bool) error {
-	err := s.repo.DeleteRoomWithAllReservations(roomID)
+	err := s.sender.Send("DELETE", []byte(""), sync)
 	if err != nil {
 		return err
 	}
 
-	err = s.sender.Send("DELETE", []byte(""), sync)
+	err = s.repo.DeleteRoomWithAllReservations(roomID)
 	if err != nil {
 		return err
 	}
@@ -90,12 +90,12 @@ func (s Service) DeleteRoomWithAllReservations(roomID int64, sync bool) error {
 }
 
 func (s Service) GetReservation(resID int64, sync bool) (*models.Reservation, error) {
-	reservation, err := s.repo.GetReservation(resID)
+	err := s.sender.Send("GET", []byte(""), sync)
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.sender.Send("GET", []byte(""), sync)
+	reservation, err := s.repo.GetReservation(resID)
 	if err != nil {
 		return nil, err
 	}
@@ -104,12 +104,12 @@ func (s Service) GetReservation(resID int64, sync bool) (*models.Reservation, er
 }
 
 func (s Service) DeleteReservation(resID int64, sync bool) error {
-	err := s.repo.DeleteReservation(resID)
+	err := s.sender.Send("DELETE", []byte(""), sync)
 	if err != nil {
 		return err
 	}
 
-	err = s.sender.Send("DELETE", []byte(""), sync)
+	err = s.repo.DeleteReservation(resID)
 	if err != nil {
 		return err
 	}
@@ -122,12 +122,13 @@ func (s Service) CreateReservation(body []byte, sync bool) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	resID, err := s.repo.CreateReservation(reservation)
+
+	err = s.sender.Send("POST", body, sync)
 	if err != nil {
 		return 0, err
 	}
 
-	err = s.sender.Send("POST", body, sync)
+	resID, err := s.repo.CreateReservation(reservation)
 	if err != nil {
 		return 0, err
 	}
@@ -141,12 +142,12 @@ func (s Service) UpdateReservation(body []byte, sync bool) error {
 		return err
 	}
 
-	err = s.repo.UpdateReservation(reservation)
+	err = s.sender.Send("PUT", body, sync)
 	if err != nil {
 		return err
 	}
 
-	err = s.sender.Send("PUT", body, sync)
+	err = s.repo.UpdateReservation(reservation)
 	if err != nil {
 		return err
 	}

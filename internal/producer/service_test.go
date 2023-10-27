@@ -36,8 +36,8 @@ func TestService_CreateReservation(t *testing.T) {
 		s := NewService(mockRepo, mockSender, mockParser)
 
 		mockParser.EXPECT().UnmarshalCreateReservationRequest(body).Return(res, nil)
-		mockRepo.EXPECT().CreateReservation(res).Return(resID, nil)
 		mockSender.EXPECT().Send("POST", body, sync).Return(nil)
+		mockRepo.EXPECT().CreateReservation(res).Return(resID, nil)
 
 		//act
 		_, err := s.CreateReservation(body, sync)
@@ -98,8 +98,8 @@ func TestService_CreateReservation(t *testing.T) {
 			s := NewService(mockRepo, mockSender, mockParser)
 
 			mockParser.EXPECT().UnmarshalCreateReservationRequest(body).Return(res, nil)
+			mockSender.EXPECT().Send("POST", body, sync).Return(nil)
 			mockRepo.EXPECT().CreateReservation(res).Return(int64(0), repository.ErrInternalServer)
-
 			//act
 			_, err := s.CreateReservation(body, sync)
 
@@ -118,7 +118,6 @@ func TestService_CreateReservation(t *testing.T) {
 			s := NewService(mockRepo, mockSender, mockParser)
 
 			mockParser.EXPECT().UnmarshalCreateReservationRequest(body).Return(res, nil)
-			mockRepo.EXPECT().CreateReservation(res).Return(resID, nil)
 			mockSender.EXPECT().Send("POST", body, sync).Return(sender.ErrSendSyncMessage)
 
 			//act
@@ -149,8 +148,8 @@ func TestService_GetReservation(t *testing.T) {
 		mockParser := mock_parser.NewMockParser(ctrl)
 		s := NewService(mockRepo, mockSender, mockParser)
 
-		mockRepo.EXPECT().GetReservation(id).Return(res, nil)
 		mockSender.EXPECT().Send("GET", body, sync).Return(nil)
+		mockRepo.EXPECT().GetReservation(id).Return(res, nil)
 
 		//act
 		getRes, err := s.GetReservation(id, sync)
@@ -174,8 +173,8 @@ func TestService_GetReservation(t *testing.T) {
 			mockParser := mock_parser.NewMockParser(ctrl)
 			s := NewService(mockRepo, mockSender, mockParser)
 
+			mockSender.EXPECT().Send("GET", body, sync).Return(nil)
 			mockRepo.EXPECT().GetReservation(id).Return(nil, repository.ErrObjectNotFound)
-			//mockSender.EXPECT().Send("GET", body, sync).Return(nil)
 
 			//act
 			getRes, err := s.GetReservation(id, sync)
@@ -195,7 +194,6 @@ func TestService_GetReservation(t *testing.T) {
 			mockParser := mock_parser.NewMockParser(ctrl)
 			s := NewService(mockRepo, mockSender, mockParser)
 
-			mockRepo.EXPECT().GetReservation(id).Return(res, nil)
 			mockSender.EXPECT().Send("GET", body, sync).Return(sender.ErrSendSyncMessage)
 
 			//act
@@ -229,8 +227,8 @@ func TestService_UpdateReservation(t *testing.T) {
 		s := NewService(mockRepo, mockSender, mockParser)
 
 		mockParser.EXPECT().UnmarshalUpdateReservationRequest(body).Return(res, nil)
-		mockRepo.EXPECT().UpdateReservation(res).Return(nil)
 		mockSender.EXPECT().Send("PUT", body, sync).Return(nil)
+		mockRepo.EXPECT().UpdateReservation(res).Return(nil)
 
 		//act
 		err := s.UpdateReservation(body, sync)
@@ -291,6 +289,7 @@ func TestService_UpdateReservation(t *testing.T) {
 			s := NewService(mockRepo, mockSender, mockParser)
 
 			mockParser.EXPECT().UnmarshalUpdateReservationRequest(body).Return(res, nil)
+			mockSender.EXPECT().Send("PUT", body, sync).Return(nil)
 			mockRepo.EXPECT().UpdateReservation(res).Return(repository.ErrInternalServer)
 
 			//act
@@ -311,7 +310,6 @@ func TestService_UpdateReservation(t *testing.T) {
 			s := NewService(mockRepo, mockSender, mockParser)
 
 			mockParser.EXPECT().UnmarshalUpdateReservationRequest(body).Return(res, nil)
-			mockRepo.EXPECT().UpdateReservation(res).Return(nil)
 			mockSender.EXPECT().Send("PUT", body, sync).Return(sender.ErrSendSyncMessage)
 
 			//act
@@ -340,8 +338,8 @@ func TestService_DeleteReservation(t *testing.T) {
 		mockParser := mock_parser.NewMockParser(ctrl)
 		s := NewService(mockRepo, mockSender, mockParser)
 
-		mockRepo.EXPECT().DeleteReservation(id).Return(nil)
 		mockSender.EXPECT().Send("DELETE", body, sync).Return(nil)
+		mockRepo.EXPECT().DeleteReservation(id).Return(nil)
 
 		//act
 		err := s.DeleteReservation(id, sync)
@@ -363,6 +361,7 @@ func TestService_DeleteReservation(t *testing.T) {
 			mockParser := mock_parser.NewMockParser(ctrl)
 			s := NewService(mockRepo, mockSender, mockParser)
 
+			mockSender.EXPECT().Send("DELETE", body, sync).Return(nil)
 			mockRepo.EXPECT().DeleteReservation(id).Return(repository.ErrInternalServer)
 
 			//act
@@ -382,7 +381,6 @@ func TestService_DeleteReservation(t *testing.T) {
 			mockParser := mock_parser.NewMockParser(ctrl)
 			s := NewService(mockRepo, mockSender, mockParser)
 
-			mockRepo.EXPECT().DeleteReservation(id).Return(nil)
 			mockSender.EXPECT().Send("DELETE", body, sync).Return(sender.ErrSendSyncMessage)
 
 			//act
@@ -415,8 +413,8 @@ func TestService_CreateRoom(t *testing.T) {
 		s := NewService(mockRepo, mockSender, mockParser)
 
 		mockParser.EXPECT().UnmarshalCreateRoomRequest(body).Return(room, nil)
-		mockRepo.EXPECT().CreateRoom(room).Return(roomID, nil)
 		mockSender.EXPECT().Send("POST", body, sync).Return(nil)
+		mockRepo.EXPECT().CreateRoom(room).Return(roomID, nil)
 
 		//act
 		_, err := s.CreateRoom(body, sync)
@@ -458,6 +456,7 @@ func TestService_CreateRoom(t *testing.T) {
 			s := NewService(mockRepo, mockSender, mockParser)
 
 			mockParser.EXPECT().UnmarshalCreateRoomRequest(body).Return(room, nil)
+			mockSender.EXPECT().Send("POST", body, sync).Return(nil)
 			mockRepo.EXPECT().CreateRoom(room).Return(int64(0), repository.ErrInternalServer)
 
 			//act
@@ -478,7 +477,6 @@ func TestService_CreateRoom(t *testing.T) {
 			s := NewService(mockRepo, mockSender, mockParser)
 
 			mockParser.EXPECT().UnmarshalCreateRoomRequest(body).Return(room, nil)
-			mockRepo.EXPECT().CreateRoom(room).Return(roomID, nil)
 			mockSender.EXPECT().Send("POST", body, sync).Return(sender.ErrSendSyncMessage)
 
 			//act
@@ -512,8 +510,8 @@ func TestService_GetRoomWithAllReservations(t *testing.T) {
 		mockParser := mock_parser.NewMockParser(ctrl)
 		s := NewService(mockRepo, mockSender, mockParser)
 
-		mockRepo.EXPECT().GetRoomWithAllReservations(roomID).Return(room, reservations, nil)
 		mockSender.EXPECT().Send("GET", body, sync).Return(nil)
+		mockRepo.EXPECT().GetRoomWithAllReservations(roomID).Return(room, reservations, nil)
 
 		//act
 		getRoom, getReservations, err := s.GetRoomWithAllReservations(roomID, sync)
@@ -537,6 +535,7 @@ func TestService_GetRoomWithAllReservations(t *testing.T) {
 			mockParser := mock_parser.NewMockParser(ctrl)
 			s := NewService(mockRepo, mockSender, mockParser)
 
+			mockSender.EXPECT().Send("GET", body, sync).Return(nil)
 			mockRepo.EXPECT().GetRoomWithAllReservations(roomID).Return(room, reservations, repository.ErrInternalServer)
 
 			//act
@@ -557,7 +556,6 @@ func TestService_GetRoomWithAllReservations(t *testing.T) {
 			mockParser := mock_parser.NewMockParser(ctrl)
 			s := NewService(mockRepo, mockSender, mockParser)
 
-			mockRepo.EXPECT().GetRoomWithAllReservations(roomID).Return(room, reservations, nil)
 			mockSender.EXPECT().Send("GET", body, sync).Return(sender.ErrSendSyncMessage)
 
 			//act
@@ -590,8 +588,8 @@ func TestService_UpdateRoom(t *testing.T) {
 		s := NewService(mockRepo, mockSender, mockParser)
 
 		mockParser.EXPECT().UnmarshalUpdateRoomRequest(body).Return(room, nil)
-		mockRepo.EXPECT().UpdateRoom(room).Return(nil)
 		mockSender.EXPECT().Send("PUT", body, sync).Return(nil)
+		mockRepo.EXPECT().UpdateRoom(room).Return(nil)
 
 		//act
 		err := s.UpdateRoom(body, sync)
@@ -633,6 +631,7 @@ func TestService_UpdateRoom(t *testing.T) {
 			s := NewService(mockRepo, mockSender, mockParser)
 
 			mockParser.EXPECT().UnmarshalUpdateRoomRequest(body).Return(room, nil)
+			mockSender.EXPECT().Send("PUT", body, sync).Return(nil)
 			mockRepo.EXPECT().UpdateRoom(room).Return(repository.ErrInternalServer)
 
 			//act
@@ -653,7 +652,6 @@ func TestService_UpdateRoom(t *testing.T) {
 			s := NewService(mockRepo, mockSender, mockParser)
 
 			mockParser.EXPECT().UnmarshalUpdateRoomRequest(body).Return(room, nil)
-			mockRepo.EXPECT().UpdateRoom(room).Return(nil)
 			mockSender.EXPECT().Send("PUT", body, sync).Return(sender.ErrSendSyncMessage)
 
 			//act
@@ -682,8 +680,8 @@ func TestService_DeleteRoomWithAllReservations(t *testing.T) {
 		mockParser := mock_parser.NewMockParser(ctrl)
 		s := NewService(mockRepo, mockSender, mockParser)
 
-		mockRepo.EXPECT().DeleteRoomWithAllReservations(roomID).Return(nil)
 		mockSender.EXPECT().Send("DELETE", body, sync).Return(nil)
+		mockRepo.EXPECT().DeleteRoomWithAllReservations(roomID).Return(nil)
 
 		//act
 		err := s.DeleteRoomWithAllReservations(roomID, sync)
@@ -705,6 +703,7 @@ func TestService_DeleteRoomWithAllReservations(t *testing.T) {
 			mockParser := mock_parser.NewMockParser(ctrl)
 			s := NewService(mockRepo, mockSender, mockParser)
 
+			mockSender.EXPECT().Send("DELETE", body, sync).Return(nil)
 			mockRepo.EXPECT().DeleteRoomWithAllReservations(roomID).Return(repository.ErrInternalServer)
 
 			//act
@@ -724,7 +723,6 @@ func TestService_DeleteRoomWithAllReservations(t *testing.T) {
 			mockParser := mock_parser.NewMockParser(ctrl)
 			s := NewService(mockRepo, mockSender, mockParser)
 
-			mockRepo.EXPECT().DeleteRoomWithAllReservations(roomID).Return(nil)
 			mockSender.EXPECT().Send("DELETE", body, sync).Return(sender.ErrSendSyncMessage)
 
 			//act

@@ -34,14 +34,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer kafkaProducer.Close()
 
 	kafkaConsumer, err := consumer.NewConsumerService(brokers)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer kafkaConsumer.Close()
 
 	topic := viper.Get("TOPIC").(string)
-	kafkaConsumer.StartConsume(topic)
+	kafkaConsumer.StartConsume(topic, -1, make(chan bool))
 
 	hotelService := producer.NewService(
 		handlers.NewRepo(dbrepo.NewPostgresRepo(db)),
@@ -56,10 +58,4 @@ func main() {
 
 	err = srv.ListenAndServe()
 	fmt.Println(err)
-
-	err = kafkaProducer.Close()
-	if err != nil {
-		fmt.Println("Close producers error ", err)
-	}
-	kafkaConsumer.Close()
 }

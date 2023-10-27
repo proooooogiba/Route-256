@@ -28,6 +28,7 @@ func (s Service) GetRoomWithAllReservations(roomID int64, sync bool) (*models.Ro
 	if err != nil {
 		return nil, nil, err
 	}
+
 	err = s.sender.Send("GET", []byte(""), sync)
 	if err != nil {
 		return nil, nil, err
@@ -36,23 +37,23 @@ func (s Service) GetRoomWithAllReservations(roomID int64, sync bool) (*models.Ro
 	return room, reservations, nil
 }
 
-func (s Service) CreateRoom(body []byte, sync bool) error {
+func (s Service) CreateRoom(body []byte, sync bool) (int64, error) {
 	room, err := s.parser.UnmarshalCreateRoomRequest(body)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	err = s.repo.CreateRoom(room)
+	roomID, err := s.repo.CreateRoom(room)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	err = s.sender.Send("POST", body, sync)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return roomID, nil
 }
 
 func (s Service) UpdateRoom(body []byte, sync bool) error {
@@ -60,6 +61,7 @@ func (s Service) UpdateRoom(body []byte, sync bool) error {
 	if err != nil {
 		return err
 	}
+
 	err = s.repo.UpdateRoom(room)
 	if err != nil {
 		return err
@@ -69,6 +71,7 @@ func (s Service) UpdateRoom(body []byte, sync bool) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -77,6 +80,7 @@ func (s Service) DeleteRoomWithAllReservations(roomID int64, sync bool) error {
 	if err != nil {
 		return err
 	}
+
 	err = s.sender.Send("DELETE", []byte(""), sync)
 	if err != nil {
 		return err
@@ -90,6 +94,7 @@ func (s Service) GetReservation(resID int64, sync bool) (*models.Reservation, er
 	if err != nil {
 		return nil, err
 	}
+
 	err = s.sender.Send("GET", []byte(""), sync)
 	if err != nil {
 		return nil, err
@@ -103,6 +108,7 @@ func (s Service) DeleteReservation(resID int64, sync bool) error {
 	if err != nil {
 		return err
 	}
+
 	err = s.sender.Send("DELETE", []byte(""), sync)
 	if err != nil {
 		return err
@@ -111,23 +117,22 @@ func (s Service) DeleteReservation(resID int64, sync bool) error {
 	return nil
 }
 
-func (s Service) CreateReservation(body []byte, sync bool) error {
+func (s Service) CreateReservation(body []byte, sync bool) (int64, error) {
 	reservation, err := s.parser.UnmarshalCreateReservationRequest(body)
 	if err != nil {
-		return err
+		return 0, err
 	}
-
-	err = s.repo.CreateReservation(reservation)
+	resID, err := s.repo.CreateReservation(reservation)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	err = s.sender.Send("POST", body, sync)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return resID, nil
 }
 
 func (s Service) UpdateReservation(body []byte, sync bool) error {

@@ -33,22 +33,22 @@ func (m *Hotel) GetRoomWithAllReservations(id int64) (*models.Room, []*models.Re
 	return room, reservations, nil
 }
 
-func (m *Hotel) CreateRoom(room models.Room) error {
+func (m *Hotel) CreateRoom(room models.Room) (int64, error) {
 	_, err := m.db.GetRoomByName(room.Name)
 
 	if err == nil {
-		return ErrRoomAlreadyExists
+		return 0, ErrRoomAlreadyExists
 	}
 
 	if !errors.Is(err, repository.ErrObjectNotFound) {
-		return ErrInternalServer
+		return 0, ErrInternalServer
 	}
 
-	_, err = m.db.InsertRoom(&room)
+	roomID, err := m.db.InsertRoom(&room)
 	if err != nil {
-		return ErrInternalServer
+		return 0, ErrInternalServer
 	}
-	return nil
+	return roomID, nil
 }
 
 func (m *Hotel) UpdateRoom(room models.Room) error {
@@ -98,20 +98,20 @@ func (m *Hotel) GetReservation(key int64) (*models.Reservation, error) {
 	return res, nil
 }
 
-func (m *Hotel) CreateReservation(res models.Reservation) error {
+func (m *Hotel) CreateReservation(res models.Reservation) (int64, error) {
 	_, err := m.db.GetRoomByID(res.RoomID)
 	if err != nil {
 		if errors.Is(err, repository.ErrObjectNotFound) {
-			return ErrRoomNotFound
+			return 0, ErrRoomNotFound
 		}
-		return ErrInternalServer
+		return 0, ErrInternalServer
 	}
 
-	_, err = m.db.InsertReservation(&res)
+	resID, err := m.db.InsertReservation(&res)
 	if err != nil {
-		return ErrInternalServer
+		return 0, ErrInternalServer
 	}
-	return nil
+	return resID, nil
 }
 
 func (m *Hotel) DeleteReservation(id int64) error {

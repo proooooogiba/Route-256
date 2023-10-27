@@ -16,11 +16,12 @@ import (
 
 func TestService_CreateReservation(t *testing.T) {
 	var (
-		body                 = []byte(`{"start_date":"2023-11-08", "end_date":"2023-11-17", "room_id":1}`)
-		invalidMarshalBody   = []byte(`{start_date":"2023-11-08", "eate":"2023-11-17", "room_id":1}`)
-		invalidParseDateBody = []byte(`{"start_date":"2023-101-088", "end_date":"2023-11-17", "room_id":1}`)
-		res                  = fixtures.Reservation().CreateValid().V()
-		sync                 = true
+		body                       = []byte(`{"start_date":"2023-11-08", "end_date":"2023-11-17", "room_id":1}`)
+		invalidMarshalBody         = []byte(`{start_date":"2023-11-08", "eate":"2023-11-17", "room_id":1}`)
+		invalidParseDateBody       = []byte(`{"start_date":"2023-101-088", "end_date":"2023-11-17", "room_id":1}`)
+		res                        = fixtures.Reservation().CreateValid().V()
+		sync                       = true
+		resID                int64 = 1
 	)
 
 	t.Run("success", func(t *testing.T) {
@@ -35,11 +36,11 @@ func TestService_CreateReservation(t *testing.T) {
 		s := NewService(mockRepo, mockSender, mockParser)
 
 		mockParser.EXPECT().UnmarshalCreateReservationRequest(body).Return(res, nil)
-		mockRepo.EXPECT().CreateReservation(res).Return(nil)
+		mockRepo.EXPECT().CreateReservation(res).Return(resID, nil)
 		mockSender.EXPECT().Send("POST", body, sync).Return(nil)
 
 		//act
-		err := s.CreateReservation(body, sync)
+		_, err := s.CreateReservation(body, sync)
 
 		// assert
 		require.Nil(t, err)
@@ -61,7 +62,7 @@ func TestService_CreateReservation(t *testing.T) {
 			mockParser.EXPECT().UnmarshalCreateReservationRequest(invalidMarshalBody).Return(models.Reservation{}, parser.ErrUnmarshal)
 
 			//act
-			err := s.CreateReservation(invalidMarshalBody, sync)
+			_, err := s.CreateReservation(invalidMarshalBody, sync)
 
 			// assert
 			require.ErrorIs(t, parser.ErrUnmarshal, err)
@@ -80,7 +81,7 @@ func TestService_CreateReservation(t *testing.T) {
 			mockParser.EXPECT().UnmarshalCreateReservationRequest(invalidParseDateBody).Return(models.Reservation{}, parser.ErrParseDate)
 
 			//act
-			err := s.CreateReservation(invalidParseDateBody, sync)
+			_, err := s.CreateReservation(invalidParseDateBody, sync)
 
 			// assert
 			require.ErrorIs(t, parser.ErrParseDate, err)
@@ -97,15 +98,15 @@ func TestService_CreateReservation(t *testing.T) {
 			s := NewService(mockRepo, mockSender, mockParser)
 
 			mockParser.EXPECT().UnmarshalCreateReservationRequest(body).Return(res, nil)
-			mockRepo.EXPECT().CreateReservation(res).Return(repository.ErrInternalServer)
+			mockRepo.EXPECT().CreateReservation(res).Return(int64(0), repository.ErrInternalServer)
 
 			//act
-			err := s.CreateReservation(body, sync)
+			_, err := s.CreateReservation(body, sync)
 
 			// assert
 			require.ErrorIs(t, repository.ErrInternalServer, err)
 		})
-		t.Run("kafka sender", func(t *testing.T) {
+		t.Run("kafka_test sender", func(t *testing.T) {
 			t.Parallel()
 
 			// arrange
@@ -117,11 +118,11 @@ func TestService_CreateReservation(t *testing.T) {
 			s := NewService(mockRepo, mockSender, mockParser)
 
 			mockParser.EXPECT().UnmarshalCreateReservationRequest(body).Return(res, nil)
-			mockRepo.EXPECT().CreateReservation(res).Return(nil)
+			mockRepo.EXPECT().CreateReservation(res).Return(resID, nil)
 			mockSender.EXPECT().Send("POST", body, sync).Return(sender.ErrSendSyncMessage)
 
 			//act
-			err := s.CreateReservation(body, sync)
+			_, err := s.CreateReservation(body, sync)
 
 			// assert
 			require.ErrorIs(t, sender.ErrSendSyncMessage, err)
@@ -183,7 +184,7 @@ func TestService_GetReservation(t *testing.T) {
 			require.ErrorIs(t, err, repository.ErrObjectNotFound)
 			require.Zero(t, getRes)
 		})
-		t.Run("kafka sender", func(t *testing.T) {
+		t.Run("kafka_test sender", func(t *testing.T) {
 			t.Parallel()
 
 			// arrange
@@ -298,7 +299,7 @@ func TestService_UpdateReservation(t *testing.T) {
 			// assert
 			require.ErrorIs(t, repository.ErrInternalServer, err)
 		})
-		t.Run("kafka sender", func(t *testing.T) {
+		t.Run("kafka_test sender", func(t *testing.T) {
 			t.Parallel()
 
 			// arrange
@@ -370,7 +371,7 @@ func TestService_DeleteReservation(t *testing.T) {
 			// assert
 			require.ErrorIs(t, err, repository.ErrInternalServer)
 		})
-		t.Run("kafka sender", func(t *testing.T) {
+		t.Run("kafka_test sender", func(t *testing.T) {
 			t.Parallel()
 
 			// arrange
@@ -395,10 +396,11 @@ func TestService_DeleteReservation(t *testing.T) {
 
 func TestService_CreateRoom(t *testing.T) {
 	var (
-		body               = []byte(`{"name":"Lux", "cost":1000.0}`)
-		invalidMarshalBody = []byte(`{"na":"Lux", "cost":100a0.0}`)
-		room               = fixtures.Room().CreateValid().V()
-		sync               = true
+		body                     = []byte(`{"name":"Lux", "cost":1000.0}`)
+		invalidMarshalBody       = []byte(`{"na":"Lux", "cost":100a0.0}`)
+		room                     = fixtures.Room().CreateValid().V()
+		sync                     = true
+		roomID             int64 = 1
 	)
 
 	t.Run("success", func(t *testing.T) {
@@ -413,11 +415,11 @@ func TestService_CreateRoom(t *testing.T) {
 		s := NewService(mockRepo, mockSender, mockParser)
 
 		mockParser.EXPECT().UnmarshalCreateRoomRequest(body).Return(room, nil)
-		mockRepo.EXPECT().CreateRoom(room).Return(nil)
+		mockRepo.EXPECT().CreateRoom(room).Return(roomID, nil)
 		mockSender.EXPECT().Send("POST", body, sync).Return(nil)
 
 		//act
-		err := s.CreateRoom(body, sync)
+		_, err := s.CreateRoom(body, sync)
 
 		// assert
 		require.Nil(t, err)
@@ -439,7 +441,7 @@ func TestService_CreateRoom(t *testing.T) {
 			mockParser.EXPECT().UnmarshalCreateRoomRequest(invalidMarshalBody).Return(models.Room{}, parser.ErrUnmarshal)
 
 			//act
-			err := s.CreateRoom(invalidMarshalBody, sync)
+			_, err := s.CreateRoom(invalidMarshalBody, sync)
 
 			// assert
 			require.ErrorIs(t, parser.ErrUnmarshal, err)
@@ -456,15 +458,15 @@ func TestService_CreateRoom(t *testing.T) {
 			s := NewService(mockRepo, mockSender, mockParser)
 
 			mockParser.EXPECT().UnmarshalCreateRoomRequest(body).Return(room, nil)
-			mockRepo.EXPECT().CreateRoom(room).Return(repository.ErrInternalServer)
+			mockRepo.EXPECT().CreateRoom(room).Return(int64(0), repository.ErrInternalServer)
 
 			//act
-			err := s.CreateRoom(body, sync)
+			_, err := s.CreateRoom(body, sync)
 
 			// assert
 			require.ErrorIs(t, repository.ErrInternalServer, err)
 		})
-		t.Run("kafka sender", func(t *testing.T) {
+		t.Run("kafka_test sender", func(t *testing.T) {
 			t.Parallel()
 
 			// arrange
@@ -476,11 +478,11 @@ func TestService_CreateRoom(t *testing.T) {
 			s := NewService(mockRepo, mockSender, mockParser)
 
 			mockParser.EXPECT().UnmarshalCreateRoomRequest(body).Return(room, nil)
-			mockRepo.EXPECT().CreateRoom(room).Return(nil)
+			mockRepo.EXPECT().CreateRoom(room).Return(roomID, nil)
 			mockSender.EXPECT().Send("POST", body, sync).Return(sender.ErrSendSyncMessage)
 
 			//act
-			err := s.CreateRoom(body, sync)
+			_, err := s.CreateRoom(body, sync)
 
 			// assert
 			require.ErrorIs(t, sender.ErrSendSyncMessage, err)
@@ -544,7 +546,7 @@ func TestService_GetRoomWithAllReservations(t *testing.T) {
 			require.ErrorIs(t, err, repository.ErrInternalServer)
 			require.Nil(t, getRoom, getReservations)
 		})
-		t.Run("kafka sender", func(t *testing.T) {
+		t.Run("kafka_test sender", func(t *testing.T) {
 			t.Parallel()
 
 			// arrange
@@ -639,7 +641,7 @@ func TestService_UpdateRoom(t *testing.T) {
 			// assert
 			require.ErrorIs(t, repository.ErrInternalServer, err)
 		})
-		t.Run("kafka sender", func(t *testing.T) {
+		t.Run("kafka_test sender", func(t *testing.T) {
 			t.Parallel()
 
 			// arrange
@@ -711,7 +713,7 @@ func TestService_DeleteRoomWithAllReservations(t *testing.T) {
 			// assert
 			require.ErrorIs(t, err, repository.ErrInternalServer)
 		})
-		t.Run("kafka sender", func(t *testing.T) {
+		t.Run("kafka_test sender", func(t *testing.T) {
 			t.Parallel()
 
 			// arrange

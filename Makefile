@@ -19,11 +19,11 @@ test-migration-down:
 
 .PHONY: integration-test
 integration-test:
-	go test -tags=integration -v -cover ./tests
+	go test -tags=integration -count=1 -v -cover ./tests
 
 .PHONY: unit-test
 unit-test:
-	go test -v ./...
+	go test -v ./... -count=1
 
 .PHONY: unit-test-coverage
 unit-test-coverage:

@@ -35,11 +35,12 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // CreateReservation mocks base method.
-func (m *MockRepository) CreateReservation(res models.Reservation) error {
+func (m *MockRepository) CreateReservation(res models.Reservation) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateReservation", res)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CreateReservation indicates an expected call of CreateReservation.
@@ -49,11 +50,12 @@ func (mr *MockRepositoryMockRecorder) CreateReservation(res interface{}) *gomock
 }
 
 // CreateRoom mocks base method.
-func (m *MockRepository) CreateRoom(room models.Room) error {
+func (m *MockRepository) CreateRoom(room models.Room) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateRoom", room)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CreateRoom indicates an expected call of CreateRoom.

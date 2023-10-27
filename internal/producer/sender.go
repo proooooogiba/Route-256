@@ -115,7 +115,7 @@ func (s *KafkaSender) buildMessage(message sender.RequestMessage) (*sarama.Produ
 		Value:     sarama.ByteEncoder(msg),
 		Partition: -1,
 		Key:       sarama.StringEncoder(strconv.FormatInt(s.msgID, 10)),
-		Headers: []sarama.RecordHeader{ // например, в хедер можно записать версию релиза
+		Headers: []sarama.RecordHeader{
 			{
 				Key:   []byte("test-header"),
 				Value: []byte("test-value"),

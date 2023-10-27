@@ -24,7 +24,7 @@ func routes(hotel *producer.Service) *mux.Router {
 				return
 			}
 
-			err := hotel.CreateRoom(body, true)
+			_, err := hotel.CreateRoom(body, true)
 
 			switch {
 			case errors.Is(err, nil):
@@ -137,7 +137,7 @@ func routes(hotel *producer.Service) *mux.Router {
 				return
 			}
 
-			err := hotel.CreateReservation(body, true)
+			_, err := hotel.CreateReservation(body, true)
 			switch {
 			case errors.Is(err, nil):
 				w.WriteHeader(http.StatusOK)

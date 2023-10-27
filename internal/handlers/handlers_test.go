@@ -125,10 +125,11 @@ func Test_CreateRoom(t *testing.T) {
 		m.EXPECT().GetRoomByName(name).Return(nil, repository.ErrObjectNotFound)
 		m.EXPECT().InsertRoom(&room).Return(id, nil)
 		//act
-		err := s.CreateRoom(room)
+		roomID, err := s.CreateRoom(room)
 
 		// assert
 		require.Nil(t, err)
+		require.Equal(t, id, roomID)
 	})
 
 	t.Run("fail", func(t *testing.T) {
@@ -144,10 +145,11 @@ func Test_CreateRoom(t *testing.T) {
 
 			m.EXPECT().GetRoomByName(name).Return(nil, nil)
 			//act
-			err := s.CreateRoom(room)
+			roomID, err := s.CreateRoom(room)
 
 			// assert
 			require.ErrorIs(t, ErrRoomAlreadyExists, err)
+			require.Zero(t, roomID)
 		})
 		t.Run("room with following name already exists", func(t *testing.T) {
 			t.Parallel()
@@ -162,10 +164,11 @@ func Test_CreateRoom(t *testing.T) {
 			m.EXPECT().InsertRoom(&room).Return(id, repository.ErrInternalServer)
 
 			//act
-			err := s.CreateRoom(room)
+			roomID, err := s.CreateRoom(room)
 
 			// assert
 			require.ErrorIs(t, ErrInternalServer, err)
+			require.Zero(t, roomID)
 		})
 	})
 }
@@ -273,6 +276,7 @@ func Test_DeleteRoomWithAllReservations(t *testing.T) {
 			s := NewRepo(m)
 
 			m.EXPECT().DeleteRoomByID(id).Return(repository.ErrObjectNotFound)
+			//m.EXPECT().DeleteReservationsByRoomID(id).Return(repository.ErrInternalServer)
 
 			//act
 			err := s.DeleteRoomWithAllReservations(id)
@@ -341,8 +345,6 @@ func Test_GetReservation(t *testing.T) {
 		// assert
 		require.Nil(t, err)
 		require.Equal(t, res, reservation)
-
-		//assert.Equal(t, "{\"id\":1,\"start_date\":\"2023-11-08T00:00:00Z\",\"end_date\":\"2023-11-17T00:00:00Z\",\"room_id\":1,\"created_at\":\"0001-01-01T00:00:00Z\",\"updated_at\":\"0001-01-01T00:00:00Z\"}", string(result))
 	})
 
 	t.Run("fail", func(t *testing.T) {
@@ -382,7 +384,7 @@ func Test_CreateReservation(t *testing.T) {
 		m.EXPECT().GetRoomByID(id).Return(&room, nil)
 		m.EXPECT().InsertReservation(&res).Return(id, nil)
 		//act
-		err := s.CreateReservation(res)
+		_, err := s.CreateReservation(res)
 
 		// assert
 		require.Nil(t, err)
@@ -402,7 +404,7 @@ func Test_CreateReservation(t *testing.T) {
 
 			m.EXPECT().GetRoomByID(id).Return(nil, repository.ErrObjectNotFound)
 			//act
-			err := s.CreateReservation(res)
+			_, err := s.CreateReservation(res)
 
 			// assert
 			require.ErrorIs(t, ErrRoomNotFound, err)
@@ -420,7 +422,7 @@ func Test_CreateReservation(t *testing.T) {
 			m.EXPECT().GetRoomByID(id).Return(&room, nil)
 			m.EXPECT().InsertReservation(&res).Return(int64(0), repository.ErrInternalServer)
 			//act
-			err := s.CreateReservation(res)
+			_, err := s.CreateReservation(res)
 
 			// assert
 			require.ErrorIs(t, ErrInternalServer, err)

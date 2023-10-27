@@ -5,7 +5,6 @@
 package mock_sender
 
 import (
-	models "homework-3/internal/pkg/models"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -46,87 +45,4 @@ func (m *MockSender) Send(method string, body []byte, sync bool) error {
 func (mr *MockSenderMockRecorder) Send(method, body, sync interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockSender)(nil).Send), method, body, sync)
-}
-
-// MockParser is a mock of Parser interface.
-type MockParser struct {
-	ctrl     *gomock.Controller
-	recorder *MockParserMockRecorder
-}
-
-// MockParserMockRecorder is the mock recorder for MockParser.
-type MockParserMockRecorder struct {
-	mock *MockParser
-}
-
-// NewMockParser creates a new mock instance.
-func NewMockParser(ctrl *gomock.Controller) *MockParser {
-	mock := &MockParser{ctrl: ctrl}
-	mock.recorder = &MockParserMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockParser) EXPECT() *MockParserMockRecorder {
-	return m.recorder
-}
-
-// UnmarshalCreateReservationRequest mocks base method.
-func (m *MockParser) UnmarshalCreateReservationRequest(body []byte) (models.Reservation, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UnmarshalCreateReservationRequest", body)
-	ret0, _ := ret[0].(models.Reservation)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UnmarshalCreateReservationRequest indicates an expected call of UnmarshalCreateReservationRequest.
-func (mr *MockParserMockRecorder) UnmarshalCreateReservationRequest(body interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnmarshalCreateReservationRequest", reflect.TypeOf((*MockParser)(nil).UnmarshalCreateReservationRequest), body)
-}
-
-// UnmarshalCreateRoomRequest mocks base method.
-func (m *MockParser) UnmarshalCreateRoomRequest(body []byte) (models.Room, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UnmarshalCreateRoomRequest", body)
-	ret0, _ := ret[0].(models.Room)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UnmarshalCreateRoomRequest indicates an expected call of UnmarshalCreateRoomRequest.
-func (mr *MockParserMockRecorder) UnmarshalCreateRoomRequest(body interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnmarshalCreateRoomRequest", reflect.TypeOf((*MockParser)(nil).UnmarshalCreateRoomRequest), body)
-}
-
-// UnmarshalUpdateReservationRequest mocks base method.
-func (m *MockParser) UnmarshalUpdateReservationRequest(body []byte) (models.Reservation, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UnmarshalUpdateReservationRequest", body)
-	ret0, _ := ret[0].(models.Reservation)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UnmarshalUpdateReservationRequest indicates an expected call of UnmarshalUpdateReservationRequest.
-func (mr *MockParserMockRecorder) UnmarshalUpdateReservationRequest(body interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnmarshalUpdateReservationRequest", reflect.TypeOf((*MockParser)(nil).UnmarshalUpdateReservationRequest), body)
-}
-
-// UnmarshalUpdateRoomRequest mocks base method.
-func (m *MockParser) UnmarshalUpdateRoomRequest(body []byte) (models.Room, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UnmarshalUpdateRoomRequest", body)
-	ret0, _ := ret[0].(models.Room)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UnmarshalUpdateRoomRequest indicates an expected call of UnmarshalUpdateRoomRequest.
-func (mr *MockParserMockRecorder) UnmarshalUpdateRoomRequest(body interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnmarshalUpdateRoomRequest", reflect.TypeOf((*MockParser)(nil).UnmarshalUpdateRoomRequest), body)
 }

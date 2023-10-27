@@ -1,7 +1,6 @@
 package consumer
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/IBM/sarama"
@@ -10,7 +9,8 @@ import (
 )
 
 type Receiver interface {
-	Subscribe(topic string) error
+	Subscribe(topic string, wantMessages int, messagesChan chan bool) error
+	Close() error
 }
 
 type Service struct {
@@ -18,7 +18,7 @@ type Service struct {
 }
 
 func (s *Service) Close() {
-	<-context.TODO().Done()
+	s.receiver.Close()
 }
 
 func NewConsumerService(brokers []string) (*Service, error) {
@@ -34,7 +34,6 @@ func NewConsumerService(brokers []string) (*Service, error) {
 			if err != nil {
 				fmt.Println("Consumer error", err)
 			}
-			fmt.Println("Received Key: ", string(message.Key), " Value: ", rm)
 		},
 	}
 
@@ -50,8 +49,8 @@ func NewService(receiver Receiver) *Service {
 	}
 }
 
-func (s *Service) StartConsume(topic string) {
-	err := s.receiver.Subscribe(topic)
+func (s *Service) StartConsume(topic string, wantMessages int, messagesChan chan bool) {
+	err := s.receiver.Subscribe(topic, wantMessages, messagesChan)
 
 	if err != nil {
 		fmt.Println("Subscribe error ", err)

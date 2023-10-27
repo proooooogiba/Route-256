@@ -16,8 +16,9 @@ import (
 )
 
 func Test_CreateRoom(t *testing.T) {
+	t.Parallel()
 	var (
-		createBody = []byte("{\"name\":\"Lux\", \"cost\":1000.0}")
+		createBody = []byte(`{"name":"Lux", "cost":1000.0}`)
 		topic      = viper.GetString("TOPIC")
 		outBody    = "\"{\\\"name\\\":\\\"Lux\\\", \\\"cost\\\":1000.0}\""
 		sync       = true
@@ -64,6 +65,7 @@ func Test_CreateRoom(t *testing.T) {
 }
 
 func Test_GetRoomWithAllReservations(t *testing.T) {
+	t.Parallel()
 	var (
 		createBody    = []byte("{\"name\":\"Lux\", \"cost\":1000.0}")
 		topic         = viper.GetString("TOPIC")
@@ -118,6 +120,7 @@ func Test_GetRoomWithAllReservations(t *testing.T) {
 }
 
 func Test_UpdateRoomKafka(t *testing.T) {
+	t.Parallel()
 	var (
 		createBody       = []byte("{\"name\":\"Lux\", \"cost\":1000.0}")
 		topic            = viper.GetString("TOPIC")
@@ -174,7 +177,7 @@ func Test_UpdateRoomKafka(t *testing.T) {
 }
 
 func Test_DeleteRoomWithAllReservations(t *testing.T) {
-	//t.Parallel()
+	t.Parallel()
 	var (
 		createBody    = []byte("{\"name\":\"Lux\", \"cost\":1000.0}")
 		topic         = viper.GetString("TOPIC")
@@ -229,6 +232,7 @@ func Test_DeleteRoomWithAllReservations(t *testing.T) {
 }
 
 func Test_CreateReservation(t *testing.T) {
+	t.Parallel()
 	var (
 		createRoomBody   = []byte("{\"name\":\"Lux\", \"cost\":1000.0}")
 		createResStrBody = "{\"start_date\":\"2023-09-15\", \"end_date\":\"2023-11-15\", \"room_id\":%v}"
@@ -281,6 +285,7 @@ func Test_CreateReservation(t *testing.T) {
 }
 
 func Test_UpdateReservationKafka(t *testing.T) {
+	t.Parallel()
 	var (
 		createRoomBody      = []byte("{\"name\":\"Lux\", \"cost\":1000.0}")
 		createResStrBody    = "{\"start_date\":\"2023-09-15\", \"end_date\":\"2023-11-15\", \"room_id\":%v}"
@@ -339,6 +344,7 @@ func Test_UpdateReservationKafka(t *testing.T) {
 }
 
 func Test_GetReservation(t *testing.T) {
+	t.Parallel()
 	var (
 		createRoomBody   = []byte("{\"name\":\"Lux\", \"cost\":1000.0}")
 		createResStrBody = "{\"start_date\":\"2023-09-15\", \"end_date\":\"2023-11-15\", \"room_id\":%v}"
@@ -396,6 +402,7 @@ func Test_GetReservation(t *testing.T) {
 }
 
 func Test_DeleteReservation(t *testing.T) {
+	t.Parallel()
 	var (
 		createRoomBody   = []byte("{\"name\":\"Lux\", \"cost\":1000.0}")
 		createResStrBody = "{\"start_date\":\"2023-09-15\", \"end_date\":\"2023-11-15\", \"room_id\":%v}"

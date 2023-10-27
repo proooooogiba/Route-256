@@ -205,12 +205,7 @@ func (r *PostgresDBRepo) DeleteReservationsByRoomID(roomID int64) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	_, err := r.GetRoomByID(roomID)
-	if err != nil {
-		return err
-	}
-
-	_, err = r.db.Exec(ctx, "DELETE FROM reservations WHERE room_id=$1", roomID)
+	_, err := r.db.Exec(ctx, "DELETE FROM reservations WHERE room_id=$1", roomID)
 	if err != nil {
 		return err
 	}

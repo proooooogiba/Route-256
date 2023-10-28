@@ -2,8 +2,9 @@ package controller
 
 import (
 	"context"
-	"gitlab.ozon.dev/go/classroom-9/experts/homework-7/internal/datasource"
 	"time"
+
+	"gitlab.ozon.dev/go/classroom-9/students/homework-7/internal/datasource"
 )
 
 type Client struct {
@@ -14,7 +15,12 @@ func NewClient(source datasource.Datasource) *Client {
 	return &Client{source: source}
 }
 
-func (c *Client) Set(ctx context.Context, key string, value any, expiration time.Duration) error {
+func (c *Client) Set(
+	ctx context.Context,
+	key string,
+	value any,
+	expiration time.Duration,
+) error {
 	return c.source.Set(ctx, key, value, expiration)
 }
 

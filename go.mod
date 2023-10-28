@@ -1,4 +1,4 @@
-module gitlab.ozon.dev/go/classroom-9/experts/homework-7
+module gitlab.ozon.dev/go/classroom-9/students/homework-7
 
 go 1.20
 

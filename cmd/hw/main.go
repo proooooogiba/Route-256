@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
-	"gitlab.ozon.dev/go/classroom-9/experts/homework-7/internal/controller"
 	"os"
 	"os/signal"
 	"time"
+
+	"gitlab.ozon.dev/go/classroom-9/students/homework-7/internal/controller"
 )
 
 func main() {

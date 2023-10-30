@@ -14,9 +14,7 @@ import (
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
-	//fmt.Sprintf("./db/%s.json", time.Now().Format("2006-01-02 15:04:05")),
 	cacheDB, err := cache.NewDatabaseWithCacheClient(
-		//"./db/storage.json",
 		fmt.Sprintf("./db/%s.json", time.Now().Format("2006-01-02 15:04:05")),
 	)
 	if err != nil {

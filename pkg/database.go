@@ -3,28 +3,72 @@ package pkg
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
+	"sync"
 )
 
 type Database struct {
-	FileName string
+	FileName       string
+	backUpFileName string
+	sync.Mutex
 }
 
-//func (d *Database) Begin(ctx context.Context) (pgx.Tx, error) {
-//
-//}
-//
-//func (d *Database) Commit(ctx context.Context) error {
-//
-//}
-//
-//func (d *Database) Rollback(ctx context.Context) error {
-//
-//}
+func (d *Database) Begin(ctx context.Context) error {
+	d.Lock()
+
+	sourceFile, err := os.Open(d.FileName)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	fileNameWithoutExt := strings.TrimSuffix(d.FileName, filepath.Ext(d.FileName))
+	sliceToCreateTempFileName := []string{fileNameWithoutExt, "_temp", filepath.Ext(d.FileName)}
+	backUpFileName := strings.Join(sliceToCreateTempFileName, "")
+	backUpFile, err := os.Create(backUpFileName)
+	if err != nil {
+		return err
+	}
+	defer backUpFile.Close()
+
+	d.backUpFileName = backUpFileName
+
+	_, err = io.Copy(backUpFile, sourceFile)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *Database) Commit(ctx context.Context) error {
+	err := os.Remove(d.backUpFileName)
+	if err != nil {
+		return err
+	}
+	defer d.Unlock()
+	return nil
+}
+
+func (d *Database) Rollback(ctx context.Context) error {
+	err := os.Remove(d.FileName)
+	if err != nil {
+		return err
+	}
+
+	err = os.Rename(d.backUpFileName, d.FileName)
+	if err != nil {
+		return err
+	}
+	d.backUpFileName = ""
+	defer d.Unlock()
+	return nil
+}
 
 func (d *Database) Exec(ctx context.Context, sql string, args ...any) (commandTag pgconn.CommandTag, err error) {
 	if sql == "INSERT INTO dictionary(key, value) VALUES ($1, $2);" {
@@ -115,7 +159,8 @@ func (d *Database) Get(key string) (any, error) {
 			return dict.Value, nil
 		}
 	}
-	return nil, errors.New("key not found")
+	return nil, KeyNotFound
+
 }
 
 func (d *Database) ListDict() (DictList, error) {

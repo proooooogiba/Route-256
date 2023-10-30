@@ -47,7 +47,7 @@ func (c *Cache) Set(key string, value any, expiration time.Duration) *redis.Stat
 	c.Items[key] = &CacheItem{}
 	c.Items[key].value = value
 	c.Items[key].expiration = time.Now().Add(expiration)
-	return redis.NewStatusCmd(context.Background(), "SET", key, value)
+	return redis.NewStatusCmd(context.Background())
 }
 
 func (c *Cache) Update() {

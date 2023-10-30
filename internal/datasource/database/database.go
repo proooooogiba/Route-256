@@ -48,15 +48,37 @@ func Create(fileName string) (*os.File, error) {
 }
 
 func (c *Client) Set(ctx context.Context, key string, value any, expiration time.Duration) error {
-	_, err := c.DB.Exec(ctx, "INSERT INTO dictionary(key, value) VALUES ($1, $2);", key, value)
+	err := c.DB.Begin(ctx)
 	if err != nil {
 		return err
 	}
+	_, err = c.DB.Exec(ctx, "INSERT INTO dictionary(key, value) VALUES ($1, $2);", key, value)
+	if err != nil {
+		c.DB.Rollback(ctx)
+		return err
+	}
+
+	err = c.DB.Commit(ctx)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (c *Client) Get(ctx context.Context, key string) (any, error) {
+	err := c.DB.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	dict, err := c.DB.QueryRow(ctx, "SELECT * FROM dictionary WHERE key=$1;", key)
+	if err != nil {
+		c.DB.Rollback(ctx)
+		return nil, err
+	}
+
+	err = c.DB.Commit(ctx)
 	if err != nil {
 		return nil, err
 	}

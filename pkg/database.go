@@ -3,42 +3,122 @@
 package pkg
 
 import (
-	"context"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
+	"encoding/json"
+	"errors"
+	"io"
+	"os"
 )
 
 // TODO реализовать только нужные
 
 type Database struct {
+	FileName string
 }
 
-func (d *Database) Begin(ctx context.Context) (pgx.Tx, error) {
-	//TODO implement me
-	panic("implement me")
+//func (d *Database) Begin(ctx context.Context) (pgx.Tx, error) {
+//
+//}
+//
+//func (d *Database) Commit(ctx context.Context) error {
+//
+//}
+//
+//func (d *Database) Rollback(ctx context.Context) error {
+//
+//}
+//
+//func (d *Database) Exec(ctx context.Context, sql string, arguments ...any) (commandTag pgconn.CommandTag, err error) {
+//
+//}
+//
+//func (d *Database) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
+//
+//}
+//
+//func (d *Database) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+//
+//}
+
+// Insert and checks if key is not repeatable
+func (d *Database) Insert(key string, value any) error {
+	listDict, err := d.ListDict()
+	if err != nil {
+		return err
+	}
+
+	if listDict.IsExist(key) {
+		return errors.New("dict with same key already exist")
+	}
+
+	newDict := &Dict{
+		Key:   key,
+		Value: value,
+	}
+
+	listDict = append(listDict, newDict)
+
+	bytes, err := json.Marshal(listDict)
+	if err != nil {
+		return err
+	}
+
+	file, err := os.OpenFile(d.FileName, os.O_RDWR, 0666)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if _err := file.Truncate(0); _err != nil {
+		return _err
+	}
+
+	if _, _err := file.Seek(0, 0); _err != nil {
+		return _err
+	}
+
+	if _, err = file.Write(bytes); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (d *Database) Commit(ctx context.Context) error {
-	//TODO implement me
-	panic("implement me")
+func (d *Database) Get(key string) (any, error) {
+	listDict, err := d.ListDict()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, dict := range listDict {
+		if key == dict.Key {
+			return dict.Value, nil
+		}
+	}
+	return nil, errors.New("key not found")
 }
 
-func (d *Database) Rollback(ctx context.Context) error {
-	//TODO implement me
-	panic("implement me")
-}
+func (d *Database) ListDict() (DictList, error) {
+	file, err := os.OpenFile(d.FileName, os.O_RDWR, 0666)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
 
-func (d *Database) Exec(ctx context.Context, sql string, arguments ...any) (commandTag pgconn.CommandTag, err error) {
-	//TODO implement me
-	panic("implement me")
-}
+	readAll, err := io.ReadAll(file)
 
-func (d *Database) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
-	//TODO implement me
-	panic("implement me")
-}
+	if err != nil {
+		return nil, err
+	}
 
-func (d *Database) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
-	//TODO implement me
-	panic("implement me")
+	var list DictList
+
+	if len(readAll) == 0 {
+		return list, nil
+	}
+
+	if err := json.Unmarshal(readAll, &list); err != nil {
+		return nil, err
+	}
+
+	return list, nil
 }

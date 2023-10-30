@@ -3,77 +3,57 @@
 package pkg
 
 import (
-	"container/list"
+	"context"
 	"github.com/redis/go-redis/v9"
 	"sync"
 	"time"
 )
 
 type Cache struct {
-	items map[string]*list.Element
-	list  *list.List
+	Items map[string]*CacheItem
 	mutex sync.Mutex
 }
 
 type CacheItem struct {
-	key        string
-	value      interface{}
+	value      any
 	expiration time.Time
 }
 
 func (c *Cache) Get(key string) *redis.StringCmd {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-
-	if elem, ok := c.items[key]; ok {
-		item := elem.Value.(*CacheItem)
-		if item.expiration.After(time.Now()) {
-			c.list.MoveToFront(elem)
-			return item.value.(*redis.StringCmd)
-		} else {
-			c.list.Remove(elem)
-			delete(c.items, key)
+	c.Update()
+	for keyItem, cacheItem := range c.Items {
+		if key == keyItem {
+			if cacheItem.expiration.After(time.Now()) {
+				strCmd := redis.NewStringCmd(context.Background())
+				strCmd.SetVal(cacheItem.value.(string))
+				return strCmd
+			} else {
+				delete(c.Items, key)
+			}
 		}
 	}
-	return nil
+
+	strCmd := redis.NewStringCmd(context.Background())
+	strCmd.SetErr(CacheNotFoundError)
+	return strCmd
 }
 
-func (c *Cache) Set(key string, value interface{}, expiration time.Duration) *redis.StatusCmd {
+func (c *Cache) Set(key string, value any, expiration time.Duration) *redis.StatusCmd {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-
-	if elem, ok := c.items[key]; ok {
-		c.list.MoveToFront(elem)
-		elem.Value.(*CacheItem).value = value
-		elem.Value.(*CacheItem).expiration = time.Now().Add(expiration)
-		return &redis.StatusCmd{}
-	}
-
-	elem := c.list.PushFront(&CacheItem{
-		key:        key,
-		value:      value,
-		expiration: time.Now().Add(expiration),
-	})
-	c.items[key] = elem
-	return &redis.StatusCmd{}
+	c.Update()
+	c.Items[key] = &CacheItem{}
+	c.Items[key].value = value
+	c.Items[key].expiration = time.Now().Add(expiration)
+	return redis.NewStatusCmd(context.Background(), "SET", key, value)
 }
 
-//func main() {
-//	cache := NewCache()
-//
-//	// set an item with expiration of 5 seconds
-//	cache.Set("key1", "value1", 5*time.Second)
-//
-//	// get the item before expiration
-//	if value, ok := cache.Get("key1"); ok {
-//		fmt.Println(value)
-//	}
-//
-//	// wait for the item to expire
-//	time.Sleep(6 * time.Second)
-//
-//	// get the item after expiration
-//	if _, ok := cache.Get("key1"); !ok {
-//		fmt.Println("item expired")
-//	}
-//}
+func (c *Cache) Update() {
+	for key, cacheItem := range c.Items {
+		if cacheItem.expiration.Before(time.Now()) {
+			delete(c.Items, key)
+		}
+	}
+}

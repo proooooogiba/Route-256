@@ -48,7 +48,7 @@ func Create(fileName string) (*os.File, error) {
 }
 
 func (c *Client) Set(ctx context.Context, key string, value any, expiration time.Duration) error {
-	err := c.DB.Insert(key, value)
+	_, err := c.DB.Exec(ctx, "INSERT INTO dictionary(key, value) VALUES ($1, $2);", key, value)
 	if err != nil {
 		return err
 	}
@@ -56,9 +56,15 @@ func (c *Client) Set(ctx context.Context, key string, value any, expiration time
 }
 
 func (c *Client) Get(ctx context.Context, key string) (any, error) {
-	value, err := c.DB.Get(key)
+	dict, err := c.DB.QueryRow(ctx, "SELECT * FROM dictionary WHERE key=$1;", key)
 	if err != nil {
 		return nil, err
 	}
-	return value, err
+
+	var value string
+	err = dict.Scan(&value)
+	if err != nil {
+		return nil, err
+	}
+	return value, nil
 }

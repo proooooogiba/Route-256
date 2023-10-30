@@ -1,15 +1,14 @@
-// TODO Вы можете редактировать этот файл по вашему усмотрению
-
 package pkg
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"io"
 	"os"
 )
-
-// TODO реализовать только нужные
 
 type Database struct {
 	FileName string
@@ -26,18 +25,40 @@ type Database struct {
 //func (d *Database) Rollback(ctx context.Context) error {
 //
 //}
-//
-//func (d *Database) Exec(ctx context.Context, sql string, arguments ...any) (commandTag pgconn.CommandTag, err error) {
-//
-//}
-//
-//func (d *Database) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
-//
-//}
-//
-//func (d *Database) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
-//
-//}
+
+func (d *Database) Exec(ctx context.Context, sql string, args ...any) (commandTag pgconn.CommandTag, err error) {
+	if sql == "INSERT INTO dictionary(key, value) VALUES ($1, $2);" {
+		if len(args) < 2 {
+			return pgconn.CommandTag{}, ArgsNotSpecifiedError
+		}
+		err := d.Insert(args[0].(string), args[1])
+		if err != nil {
+			return pgconn.CommandTag{}, err
+		}
+		return pgconn.NewCommandTag("INSERT"), nil
+	} else {
+		return pgconn.CommandTag{}, SqlScriptNotSupportedError
+	}
+}
+
+func (d *Database) QueryRow(ctx context.Context, sql string, args ...any) (pgx.Row, error) {
+	if sql == "SELECT * FROM dictionary WHERE key=$1;" {
+		if len(args) < 1 {
+			return nil, ArgsNotSpecifiedError
+		}
+		key := args[0].(string)
+		value, err := d.Get(key)
+		if err != nil {
+			return nil, err
+		}
+		return &Dict{
+			Key:   key,
+			Value: value,
+		}, nil
+	} else {
+		return nil, SqlScriptNotSupportedError
+	}
+}
 
 // Insert and checks if key is not repeatable
 func (d *Database) Insert(key string, value any) error {
@@ -47,7 +68,7 @@ func (d *Database) Insert(key string, value any) error {
 	}
 
 	if listDict.IsExist(key) {
-		return errors.New("dict with same key already exist")
+		return KeyAlreadyExist
 	}
 
 	newDict := &Dict{

@@ -52,7 +52,7 @@ func (c *Client) Set(ctx context.Context, key string, value any, expiration time
 	if err != nil {
 		return err
 	}
-	_, err = c.DB.Exec(ctx, "INSERT INTO dictionary(key, value) VALUES ($1, $2);", key, value)
+	_, err = c.DB.Exec(ctx, "INSERT INTO dictionary ( key , value ) VALUES ( $1 , $2 ) ;", key, value)
 	if err != nil {
 		c.DB.Rollback(ctx)
 		return err
@@ -72,7 +72,7 @@ func (c *Client) Get(ctx context.Context, key string) (any, error) {
 		return nil, err
 	}
 
-	dict, err := c.DB.QueryRow(ctx, "SELECT * FROM dictionary WHERE key=$1;", key)
+	dict, err := c.DB.QueryRow(ctx, "SELECT * FROM dictionary WHERE key = $1 ;", key)
 	if err != nil {
 		c.DB.Rollback(ctx)
 		return nil, err

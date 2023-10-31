@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"gitlab.ozon.dev/go/classroom-9/students/homework-7/pkg/sql_parser"
 	"io"
 	"os"
 	"path/filepath"
@@ -71,7 +72,19 @@ func (d *Database) Rollback(ctx context.Context) error {
 }
 
 func (d *Database) Exec(ctx context.Context, sql string, args ...any) (commandTag pgconn.CommandTag, err error) {
-	if sql == "INSERT INTO dictionary(key, value) VALUES ($1, $2);" {
+	queryInfo, err := sql_parser.Parse(sql)
+	if err != nil {
+		return pgconn.CommandTag{}, err
+	}
+
+	queryRequirement := sql_parser.QueryInfo{
+		Operation:     "INSERT",
+		Table:         "dictionary",
+		IdentSlice:    []string{"key", "value"},
+		TemplateSlice: []string{"$1", "$2"},
+	}
+
+	if queryInfo.Equals(queryRequirement) {
 		if len(args) < 2 {
 			return pgconn.CommandTag{}, ArgsNotSpecifiedError
 		}
@@ -86,7 +99,19 @@ func (d *Database) Exec(ctx context.Context, sql string, args ...any) (commandTa
 }
 
 func (d *Database) QueryRow(ctx context.Context, sql string, args ...any) (pgx.Row, error) {
-	if sql == "SELECT * FROM dictionary WHERE key=$1;" {
+	queryInfo, err := sql_parser.Parse(sql)
+	if err != nil {
+		return nil, err
+	}
+
+	queryRequirement := sql_parser.QueryInfo{
+		Operation:     "SELECT",
+		Table:         "dictionary",
+		IdentSlice:    []string{"key"},
+		TemplateSlice: []string{"$1"},
+	}
+
+	if queryInfo.Equals(queryRequirement) {
 		if len(args) < 1 {
 			return nil, ArgsNotSpecifiedError
 		}

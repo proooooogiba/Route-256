@@ -21,8 +21,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	client := controller.NewClient(cacheDB) // TODO
-
+	client := controller.NewClient(cacheDB)
 	var bestUser = "best user, expired after 30 seconds"
 
 	// Создаём запись

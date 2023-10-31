@@ -1,5 +1,5 @@
 //go:generate mockgen -source ./repository.go -destination=./mocks/repository.go -package=mock_repo
-package handlers
+package bussiness_logic
 
 import "homework-3/internal/pkg/models"
 

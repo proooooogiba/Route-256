@@ -1,4 +1,4 @@
-package handlers
+package bussiness_logic
 
 import "errors"
 

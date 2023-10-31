@@ -1,142 +1,155 @@
+//go:generate mockgen -source ./service.go -destination=./mocks/service.go -package=mock_service
+
 package handlers
 
 import (
-	"errors"
+	"homework-3/internal/pkg/bussiness_logic"
 	"homework-3/internal/pkg/models"
-	"homework-3/internal/pkg/repository"
+	"homework-3/internal/pkg/parser"
+	"homework-3/internal/pkg/sender"
 )
 
-type Hotel struct {
-	db repository.DatabaseRepo
+type Service struct {
+	repo   bussiness_logic.Repository
+	sender sender.Sender
+	parser parser.Parser
 }
 
-// NewRepo creates a new repository
-func NewRepo(db repository.DatabaseRepo) *Hotel {
-	return &Hotel{
-		db: db,
+func NewService(repo bussiness_logic.Repository, sender sender.Sender, parser parser.Parser) *Service {
+	return &Service{
+		repo:   repo,
+		sender: sender,
+		parser: parser,
 	}
 }
 
-func (m *Hotel) GetRoomWithAllReservations(id int64) (*models.Room, []*models.Reservation, error) {
-	room, err := m.db.GetRoomByID(id)
+func (s *Service) GetRoomWithAllReservations(method string, roomID int64, sync bool) (*models.Room, []*models.Reservation, error) {
+	err := s.sender.Send(method, []byte(""), sync)
 	if err != nil {
-		if errors.Is(err, repository.ErrObjectNotFound) {
-			return nil, nil, ErrRoomNotFound
-		}
-		return nil, nil, ErrInternalServer
+		return nil, nil, err
 	}
 
-	reservations, err := m.db.GetReservationsByRoomID(id)
+	room, reservations, err := s.repo.GetRoomWithAllReservations(roomID)
 	if err != nil {
-		return nil, nil, ErrInternalServer
+		return nil, nil, err
 	}
+
 	return room, reservations, nil
 }
 
-func (m *Hotel) CreateRoom(room models.Room) (int64, error) {
-	_, err := m.db.GetRoomByName(room.Name)
-
-	if err == nil {
-		return 0, ErrRoomAlreadyExists
-	}
-
-	if !errors.Is(err, repository.ErrObjectNotFound) {
-		return 0, ErrInternalServer
-	}
-
-	roomID, err := m.db.InsertRoom(&room)
+func (s *Service) CreateRoom(method string, body []byte, sync bool) (int64, error) {
+	room, err := s.parser.UnmarshalCreateRoomRequest(body)
 	if err != nil {
-		return 0, ErrInternalServer
+		return 0, err
 	}
+
+	err = s.sender.Send(method, body, sync)
+	if err != nil {
+		return 0, err
+	}
+
+	roomID, err := s.repo.CreateRoom(room)
+	if err != nil {
+		return 0, err
+	}
+
 	return roomID, nil
 }
 
-func (m *Hotel) UpdateRoom(room models.Room) error {
-	_, err := m.db.GetRoomByID(room.ID)
+func (s *Service) UpdateRoom(method string, body []byte, sync bool) error {
+	room, err := s.parser.UnmarshalUpdateRoomRequest(body)
 	if err != nil {
-		if errors.Is(err, repository.ErrObjectNotFound) {
-			//return http.StatusNotFound
-			return ErrRoomNotFound
-		}
-		return ErrInternalServer
+		return err
 	}
 
-	err = m.db.UpdateRoom(&room)
+	err = s.sender.Send(method, body, sync)
 	if err != nil {
-		return ErrInternalServer
-		//return http.StatusInternalServerError
+		return err
 	}
 
-	return nil
-}
-
-func (m *Hotel) DeleteRoomWithAllReservations(id int64) error {
-	err := m.db.DeleteRoomByID(id)
+	err = s.repo.UpdateRoom(room)
 	if err != nil {
-		if errors.Is(err, repository.ErrObjectNotFound) {
-			return ErrRoomNotFound
-		}
-		return ErrInternalServer
-	}
-
-	err = m.db.DeleteReservationsByRoomID(id)
-	if err != nil {
-		return ErrInternalServer
+		return err
 	}
 
 	return nil
 }
 
-func (m *Hotel) GetReservation(key int64) (*models.Reservation, error) {
-	res, err := m.db.GetReservationByID(key)
+func (s *Service) DeleteRoomWithAllReservations(method string, roomID int64, sync bool) error {
+	err := s.sender.Send(method, []byte(""), sync)
 	if err != nil {
-		if errors.Is(err, repository.ErrObjectNotFound) {
-			return nil, ErrReservationNotFound
-		}
-		return nil, ErrInternalServer
+		return err
 	}
-	return res, nil
+
+	err = s.repo.DeleteRoomWithAllReservations(roomID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (m *Hotel) CreateReservation(res models.Reservation) (int64, error) {
-	_, err := m.db.GetRoomByID(res.RoomID)
+func (s *Service) GetReservation(method string, resID int64, sync bool) (*models.Reservation, error) {
+	err := s.sender.Send(method, []byte(""), sync)
 	if err != nil {
-		if errors.Is(err, repository.ErrObjectNotFound) {
-			return 0, ErrRoomNotFound
-		}
-		return 0, ErrInternalServer
+		return nil, err
 	}
 
-	resID, err := m.db.InsertReservation(&res)
+	reservation, err := s.repo.GetReservation(resID)
 	if err != nil {
-		return 0, ErrInternalServer
+		return nil, err
 	}
+
+	return reservation, nil
+}
+
+func (s *Service) DeleteReservation(method string, resID int64, sync bool) error {
+	err := s.sender.Send(method, []byte(""), sync)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.DeleteReservation(resID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Service) CreateReservation(method string, body []byte, sync bool) (int64, error) {
+	reservation, err := s.parser.UnmarshalCreateReservationRequest(body)
+	if err != nil {
+		return 0, err
+	}
+
+	err = s.sender.Send(method, body, sync)
+	if err != nil {
+		return 0, err
+	}
+
+	resID, err := s.repo.CreateReservation(reservation)
+	if err != nil {
+		return 0, err
+	}
+
 	return resID, nil
 }
 
-func (m *Hotel) DeleteReservation(id int64) error {
-	err := m.db.DeleteReservationByID(id)
+func (s *Service) UpdateReservation(method string, body []byte, sync bool) error {
+	reservation, err := s.parser.UnmarshalUpdateReservationRequest(body)
 	if err != nil {
-		if errors.Is(err, repository.ErrObjectNotFound) {
-			return ErrReservationNotFound
-		}
-		return ErrInternalServer
-	}
-	return nil
-}
-
-func (m *Hotel) UpdateReservation(res models.Reservation) error {
-	_, err := m.db.GetReservationByID(res.ID)
-	if err != nil {
-		if errors.Is(err, repository.ErrObjectNotFound) {
-			return ErrReservationNotFound
-		}
-		return ErrInternalServer
+		return err
 	}
 
-	err = m.db.UpdateReservation(&res)
+	err = s.sender.Send(method, body, sync)
 	if err != nil {
-		return ErrInternalServer
+		return err
+	}
+
+	err = s.repo.UpdateReservation(reservation)
+	if err != nil {
+		return err
 	}
 
 	return nil

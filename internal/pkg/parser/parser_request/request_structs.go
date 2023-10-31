@@ -1,4 +1,4 @@
-package producer
+package parser_request
 
 type createRoomRequest struct {
 	Name string  `json:"name"`

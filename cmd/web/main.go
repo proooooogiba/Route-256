@@ -7,7 +7,9 @@ import (
 	"homework-3/infrastructure/kafka"
 	"homework-3/internal/consumer"
 	"homework-3/internal/handlers"
+	"homework-3/internal/pkg/bussiness_logic/hotel_repo"
 	"homework-3/internal/pkg/db"
+	"homework-3/internal/pkg/parser/parser_request"
 	"homework-3/internal/pkg/repository/dbrepo"
 	"homework-3/internal/producer"
 	"log"
@@ -45,10 +47,10 @@ func main() {
 	topic := viper.Get("TOPIC").(string)
 	kafkaConsumer.StartConsume(topic, -1, make(chan bool))
 
-	hotelService := producer.NewService(
-		handlers.NewRepo(dbrepo.NewPostgresRepo(db)),
+	hotelService := handlers.NewService(
+		hotel_repo.NewRepo(dbrepo.NewPostgresRepo(db)),
 		producer.NewKafkaSender(kafkaProducer, topic),
-		producer.NewRequestParser(),
+		parser_request.NewRequestParser(),
 	)
 
 	srv := &http.Server{

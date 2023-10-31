@@ -8,9 +8,12 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 	"homework-3/internal/handlers"
+	"homework-3/internal/pkg/bussiness_logic/hotel_repo"
+	"homework-3/internal/pkg/parser/parser_request"
 	"homework-3/internal/pkg/repository/dbrepo"
 	"homework-3/internal/producer"
 	"io"
+	"net/http"
 	"os"
 	"testing"
 )
@@ -37,10 +40,10 @@ func Test_CreateRoom(t *testing.T) {
 		messagesChan := make(chan bool, wantMessages)
 		tConsumer.Consumer.StartConsume(topic, wantMessages, messagesChan)
 
-		hotelService := producer.NewService(
-			handlers.NewRepo(dbrepo.NewPostgresRepo(db.DB)),
+		hotelService := handlers.NewService(
+			hotel_repo.NewRepo(dbrepo.NewPostgresRepo(db.DB)),
 			producer.NewKafkaSender(tProducer.Producer, topic),
-			producer.NewRequestParser(),
+			parser_request.NewRequestParser(),
 		)
 
 		rescueStdout := os.Stdout
@@ -48,7 +51,7 @@ func Test_CreateRoom(t *testing.T) {
 		os.Stdout = w
 
 		//act
-		_, err := hotelService.CreateRoom(createBody, sync)
+		_, err := hotelService.CreateRoom(http.MethodPost, createBody, sync)
 		require.Nil(t, err)
 
 		for i := 0; i < wantMessages; i++ {
@@ -88,10 +91,10 @@ func Test_GetRoomWithAllReservations(t *testing.T) {
 		messagesChan := make(chan bool, wantMessages)
 		tConsumer.Consumer.StartConsume(topic, wantMessages, messagesChan)
 
-		hotelService := producer.NewService(
-			handlers.NewRepo(dbrepo.NewPostgresRepo(db.DB)),
+		hotelService := handlers.NewService(
+			hotel_repo.NewRepo(dbrepo.NewPostgresRepo(db.DB)),
 			producer.NewKafkaSender(tProducer.Producer, topic),
-			producer.NewRequestParser(),
+			parser_request.NewRequestParser(),
 		)
 
 		rescueStdout := os.Stdout
@@ -99,10 +102,10 @@ func Test_GetRoomWithAllReservations(t *testing.T) {
 		os.Stdout = w
 
 		//act
-		roomID, err := hotelService.CreateRoom(createBody, sync)
+		roomID, err := hotelService.CreateRoom(http.MethodPost, createBody, sync)
 		require.Nil(t, err)
 
-		_, _, err = hotelService.GetRoomWithAllReservations(roomID, sync)
+		_, _, err = hotelService.GetRoomWithAllReservations(http.MethodGet, roomID, sync)
 		require.Nil(t, err)
 
 		for i := 0; i < wantMessages; i++ {
@@ -144,10 +147,10 @@ func Test_UpdateRoomKafka(t *testing.T) {
 		messagesChan := make(chan bool, wantMessages)
 		tConsumer.Consumer.StartConsume(topic, wantMessages, messagesChan)
 
-		hotelService := producer.NewService(
-			handlers.NewRepo(dbrepo.NewPostgresRepo(db.DB)),
+		hotelService := handlers.NewService(
+			hotel_repo.NewRepo(dbrepo.NewPostgresRepo(db.DB)),
 			producer.NewKafkaSender(tProducer.Producer, topic),
-			producer.NewRequestParser(),
+			parser_request.NewRequestParser(),
 		)
 
 		rescueStdout := os.Stdout
@@ -155,11 +158,11 @@ func Test_UpdateRoomKafka(t *testing.T) {
 		os.Stdout = w
 
 		//act
-		roomID, err := hotelService.CreateRoom(createBody, sync)
+		roomID, err := hotelService.CreateRoom(http.MethodPost, createBody, sync)
 		require.Nil(t, err)
 
 		updateBody := []byte(fmt.Sprintf(updateStrBody, roomID))
-		err = hotelService.UpdateRoom(updateBody, sync)
+		err = hotelService.UpdateRoom(http.MethodPut, updateBody, sync)
 		require.Nil(t, err)
 
 		for i := 0; i < wantMessages; i++ {
@@ -200,10 +203,10 @@ func Test_DeleteRoomWithAllReservations(t *testing.T) {
 		messagesChan := make(chan bool, wantMessages)
 		tConsumer.Consumer.StartConsume(topic, wantMessages, messagesChan)
 
-		hotelService := producer.NewService(
-			handlers.NewRepo(dbrepo.NewPostgresRepo(db.DB)),
+		hotelService := handlers.NewService(
+			hotel_repo.NewRepo(dbrepo.NewPostgresRepo(db.DB)),
 			producer.NewKafkaSender(tProducer.Producer, topic),
-			producer.NewRequestParser(),
+			parser_request.NewRequestParser(),
 		)
 
 		rescueStdout := os.Stdout
@@ -211,10 +214,10 @@ func Test_DeleteRoomWithAllReservations(t *testing.T) {
 		os.Stdout = w
 
 		//act
-		roomID, err := hotelService.CreateRoom(createBody, sync)
+		roomID, err := hotelService.CreateRoom(http.MethodPost, createBody, sync)
 		require.Nil(t, err)
 
-		err = hotelService.DeleteRoomWithAllReservations(roomID, sync)
+		err = hotelService.DeleteRoomWithAllReservations(http.MethodDelete, roomID, sync)
 		require.Nil(t, err)
 
 		for i := 0; i < wantMessages; i++ {
@@ -255,10 +258,10 @@ func Test_CreateReservation(t *testing.T) {
 		messagesChan := make(chan bool, wantMessages)
 		tConsumer.Consumer.StartConsume(topic, wantMessages, messagesChan)
 
-		hotelService := producer.NewService(
-			handlers.NewRepo(dbrepo.NewPostgresRepo(db.DB)),
+		hotelService := handlers.NewService(
+			hotel_repo.NewRepo(dbrepo.NewPostgresRepo(db.DB)),
 			producer.NewKafkaSender(tProducer.Producer, topic),
-			producer.NewRequestParser(),
+			parser_request.NewRequestParser(),
 		)
 
 		rescueStdout := os.Stdout
@@ -266,9 +269,9 @@ func Test_CreateReservation(t *testing.T) {
 		os.Stdout = w
 
 		//act
-		roomID, err := hotelService.CreateRoom(createRoomBody, sync)
+		roomID, err := hotelService.CreateRoom(http.MethodPost, createRoomBody, sync)
 		require.Nil(t, err)
-		_, err = hotelService.CreateReservation([]byte(fmt.Sprintf(createResStrBody, roomID)), sync)
+		_, err = hotelService.CreateReservation(http.MethodPost, []byte(fmt.Sprintf(createResStrBody, roomID)), sync)
 		require.Nil(t, err)
 
 		for i := 0; i < wantMessages; i++ {
@@ -310,10 +313,10 @@ func Test_UpdateReservationKafka(t *testing.T) {
 		messagesChan := make(chan bool, wantMessages)
 		tConsumer.Consumer.StartConsume(topic, wantMessages, messagesChan)
 
-		hotelService := producer.NewService(
-			handlers.NewRepo(dbrepo.NewPostgresRepo(db.DB)),
+		hotelService := handlers.NewService(
+			hotel_repo.NewRepo(dbrepo.NewPostgresRepo(db.DB)),
 			producer.NewKafkaSender(tProducer.Producer, topic),
-			producer.NewRequestParser(),
+			parser_request.NewRequestParser(),
 		)
 
 		rescueStdout := os.Stdout
@@ -321,11 +324,11 @@ func Test_UpdateReservationKafka(t *testing.T) {
 		os.Stdout = w
 
 		//act
-		roomID, err := hotelService.CreateRoom(createRoomBody, sync)
+		roomID, err := hotelService.CreateRoom(http.MethodPost, createRoomBody, sync)
 		require.Nil(t, err)
-		resID, err := hotelService.CreateReservation([]byte(fmt.Sprintf(createResStrBody, roomID)), sync)
+		resID, err := hotelService.CreateReservation(http.MethodPost, []byte(fmt.Sprintf(createResStrBody, roomID)), sync)
 		require.Nil(t, err)
-		err = hotelService.UpdateReservation([]byte(fmt.Sprintf(updateResStrBody, resID, roomID)), sync)
+		err = hotelService.UpdateReservation(http.MethodPut, []byte(fmt.Sprintf(updateResStrBody, resID, roomID)), sync)
 		require.Nil(t, err)
 
 		for i := 0; i < wantMessages; i++ {
@@ -368,10 +371,10 @@ func Test_GetReservation(t *testing.T) {
 		messagesChan := make(chan bool, wantMessages)
 		tConsumer.Consumer.StartConsume(topic, wantMessages, messagesChan)
 
-		hotelService := producer.NewService(
-			handlers.NewRepo(dbrepo.NewPostgresRepo(db.DB)),
+		hotelService := handlers.NewService(
+			hotel_repo.NewRepo(dbrepo.NewPostgresRepo(db.DB)),
 			producer.NewKafkaSender(tProducer.Producer, topic),
-			producer.NewRequestParser(),
+			parser_request.NewRequestParser(),
 		)
 
 		rescueStdout := os.Stdout
@@ -379,11 +382,11 @@ func Test_GetReservation(t *testing.T) {
 		os.Stdout = w
 
 		//act
-		roomID, err := hotelService.CreateRoom(createRoomBody, sync)
+		roomID, err := hotelService.CreateRoom(http.MethodPost, createRoomBody, sync)
 		require.Nil(t, err)
-		resID, err := hotelService.CreateReservation([]byte(fmt.Sprintf(createResStrBody, roomID)), sync)
+		resID, err := hotelService.CreateReservation(http.MethodPost, []byte(fmt.Sprintf(createResStrBody, roomID)), sync)
 		require.Nil(t, err)
-		_, err = hotelService.GetReservation(resID, sync)
+		_, err = hotelService.GetReservation(http.MethodGet, resID, sync)
 		require.Nil(t, err)
 
 		for i := 0; i < wantMessages; i++ {
@@ -426,10 +429,10 @@ func Test_DeleteReservation(t *testing.T) {
 		messagesChan := make(chan bool, wantMessages)
 		tConsumer.Consumer.StartConsume(topic, wantMessages, messagesChan)
 
-		hotelService := producer.NewService(
-			handlers.NewRepo(dbrepo.NewPostgresRepo(db.DB)),
+		hotelService := handlers.NewService(
+			hotel_repo.NewRepo(dbrepo.NewPostgresRepo(db.DB)),
 			producer.NewKafkaSender(tProducer.Producer, topic),
-			producer.NewRequestParser(),
+			parser_request.NewRequestParser(),
 		)
 
 		rescueStdout := os.Stdout
@@ -437,11 +440,11 @@ func Test_DeleteReservation(t *testing.T) {
 		os.Stdout = w
 
 		//act
-		roomID, err := hotelService.CreateRoom(createRoomBody, sync)
+		roomID, err := hotelService.CreateRoom(http.MethodPost, createRoomBody, sync)
 		require.Nil(t, err)
-		resID, err := hotelService.CreateReservation([]byte(fmt.Sprintf(createResStrBody, roomID)), sync)
+		resID, err := hotelService.CreateReservation(http.MethodPost, []byte(fmt.Sprintf(createResStrBody, roomID)), sync)
 		require.Nil(t, err)
-		err = hotelService.DeleteReservation(resID, sync)
+		err = hotelService.DeleteReservation(http.MethodDelete, resID, sync)
 		require.Nil(t, err)
 
 		for i := 0; i < wantMessages; i++ {

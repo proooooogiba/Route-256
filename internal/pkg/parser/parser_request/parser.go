@@ -1,4 +1,4 @@
-package producer
+package parser_request
 
 import (
 	"encoding/json"

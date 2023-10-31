@@ -2,7 +2,6 @@ package consumer
 
 import (
 	"errors"
-	"fmt"
 	"github.com/IBM/sarama"
 	"homework-3/infrastructure/kafka"
 )
@@ -47,8 +46,6 @@ func (r *KafkaReceiver) Subscribe(topic string, wantMessages int, messagesChan c
 			go func(pc sarama.PartitionConsumer, partition int32) {
 				for message := range pc.Messages() {
 					handler(message)
-					fmt.Println("Read Topic: ", topic, " Partition: ", partition, " Offset: ", message.Offset)
-					fmt.Println("Received Key: ", string(message.Key), " Value: ", string(message.Value))
 				}
 			}(pc, partition)
 		} else {
@@ -59,8 +56,6 @@ func (r *KafkaReceiver) Subscribe(topic string, wantMessages int, messagesChan c
 						break
 					}
 					handler(message)
-					fmt.Println("Read Topic: ", topic, " Partition: ", partition, " Offset: ", message.Offset)
-					fmt.Println("Received Key: ", string(message.Key), " Value: ", string(message.Value))
 					messagesChan <- true
 					count++
 				}

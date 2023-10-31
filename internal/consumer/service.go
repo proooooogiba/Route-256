@@ -34,6 +34,8 @@ func NewConsumerService(brokers []string) (*Service, error) {
 			if err != nil {
 				fmt.Println("Consumer error", err)
 			}
+			fmt.Println("Read Topic:", message.Topic, "Partition:", message.Partition, "Offset:", message.Offset)
+			fmt.Println("Received Key:", string(message.Key), "Value:", string(message.Value))
 		},
 	}
 

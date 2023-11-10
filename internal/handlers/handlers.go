@@ -3,19 +3,19 @@
 package handlers
 
 import (
-	"homework-3/internal/pkg/bussiness_logic"
+	"homework-3/internal/pkg/domain"
 	"homework-3/internal/pkg/models"
 	"homework-3/internal/pkg/parser"
 	"homework-3/internal/pkg/sender"
 )
 
 type Service struct {
-	repo   bussiness_logic.Repository
+	repo   domain.Repository
 	sender sender.Sender
 	parser parser.Parser
 }
 
-func NewService(repo bussiness_logic.Repository, sender sender.Sender, parser parser.Parser) *Service {
+func NewService(repo domain.Repository, sender sender.Sender, parser parser.Parser) *Service {
 	return &Service{
 		repo:   repo,
 		sender: sender,
@@ -28,7 +28,6 @@ func (s *Service) GetRoomWithAllReservations(method string, roomID int64, sync b
 	if err != nil {
 		return nil, nil, err
 	}
-
 	room, reservations, err := s.repo.GetRoomWithAllReservations(roomID)
 	if err != nil {
 		return nil, nil, err

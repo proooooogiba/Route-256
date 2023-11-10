@@ -5,7 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"homework-3/internal/pkg/bussiness_logic"
+	"homework-3/internal/pkg/domain"
 	"homework-3/internal/pkg/models"
 	"homework-3/internal/pkg/repository"
 	mock_repository "homework-3/internal/pkg/repository/mocks"
@@ -83,7 +83,7 @@ func Test_GetRoomWithAllReservations(t *testing.T) {
 			getRoom, getReservations, err := s.GetRoomWithAllReservations(id)
 
 			// assert
-			require.ErrorIs(t, bussiness_logic.ErrRoomNotFound, err)
+			require.ErrorIs(t, domain.ErrRoomNotFound, err)
 			assert.Nil(t, getRoom, getReservations)
 		})
 
@@ -102,7 +102,7 @@ func Test_GetRoomWithAllReservations(t *testing.T) {
 			getRoom, getReservations, err := s.GetRoomWithAllReservations(id)
 
 			// assert
-			require.ErrorIs(t, bussiness_logic.ErrInternalServer, err)
+			require.ErrorIs(t, domain.ErrInternalServer, err)
 			assert.Nil(t, getReservations, getRoom)
 		})
 	})
@@ -149,7 +149,7 @@ func Test_CreateRoom(t *testing.T) {
 			roomID, err := s.CreateRoom(room)
 
 			// assert
-			require.ErrorIs(t, bussiness_logic.ErrRoomAlreadyExists, err)
+			require.ErrorIs(t, domain.ErrRoomAlreadyExists, err)
 			require.Zero(t, roomID)
 		})
 		t.Run("room with following name already exists", func(t *testing.T) {
@@ -168,7 +168,7 @@ func Test_CreateRoom(t *testing.T) {
 			roomID, err := s.CreateRoom(room)
 
 			// assert
-			require.ErrorIs(t, bussiness_logic.ErrInternalServer, err)
+			require.ErrorIs(t, domain.ErrInternalServer, err)
 			require.Zero(t, roomID)
 		})
 	})
@@ -219,7 +219,7 @@ func Test_UpdateRoom(t *testing.T) {
 			err := s.UpdateRoom(room)
 
 			// assert
-			require.ErrorIs(t, bussiness_logic.ErrRoomNotFound, err)
+			require.ErrorIs(t, domain.ErrRoomNotFound, err)
 		})
 
 		t.Run("room with id doesn't exists", func(t *testing.T) {
@@ -237,7 +237,7 @@ func Test_UpdateRoom(t *testing.T) {
 			err := s.UpdateRoom(room)
 
 			// assert
-			require.Equal(t, bussiness_logic.ErrInternalServer, err)
+			require.Equal(t, domain.ErrInternalServer, err)
 		})
 	})
 
@@ -283,7 +283,7 @@ func Test_DeleteRoomWithAllReservations(t *testing.T) {
 			err := s.DeleteRoomWithAllReservations(id)
 
 			// assert
-			require.ErrorIs(t, bussiness_logic.ErrRoomNotFound, err)
+			require.ErrorIs(t, domain.ErrRoomNotFound, err)
 		})
 
 		t.Run("internal error when delete room", func(t *testing.T) {
@@ -301,7 +301,7 @@ func Test_DeleteRoomWithAllReservations(t *testing.T) {
 			err := s.DeleteRoomWithAllReservations(id)
 
 			// assert
-			require.ErrorIs(t, bussiness_logic.ErrInternalServer, err)
+			require.ErrorIs(t, domain.ErrInternalServer, err)
 		})
 
 		t.Run("internal error when delete reservations", func(t *testing.T) {
@@ -320,7 +320,7 @@ func Test_DeleteRoomWithAllReservations(t *testing.T) {
 			err := s.DeleteRoomWithAllReservations(id)
 
 			// assert
-			require.ErrorIs(t, bussiness_logic.ErrInternalServer, err)
+			require.ErrorIs(t, domain.ErrInternalServer, err)
 		})
 	})
 }
@@ -362,7 +362,7 @@ func Test_GetReservation(t *testing.T) {
 		result, err := s.GetReservation(id)
 
 		// assert
-		require.ErrorIs(t, bussiness_logic.ErrReservationNotFound, err)
+		require.ErrorIs(t, domain.ErrReservationNotFound, err)
 		assert.Nil(t, result)
 	})
 }
@@ -408,7 +408,7 @@ func Test_CreateReservation(t *testing.T) {
 			_, err := s.CreateReservation(res)
 
 			// assert
-			require.ErrorIs(t, bussiness_logic.ErrRoomNotFound, err)
+			require.ErrorIs(t, domain.ErrRoomNotFound, err)
 		})
 
 		t.Run("internal error when insert reservation", func(t *testing.T) {
@@ -426,7 +426,7 @@ func Test_CreateReservation(t *testing.T) {
 			_, err := s.CreateReservation(res)
 
 			// assert
-			require.ErrorIs(t, bussiness_logic.ErrInternalServer, err)
+			require.ErrorIs(t, domain.ErrInternalServer, err)
 		})
 	})
 }
@@ -465,7 +465,7 @@ func Test_DeleteReservation(t *testing.T) {
 			err := s.DeleteReservation(id)
 
 			// assert
-			require.ErrorIs(t, bussiness_logic.ErrReservationNotFound, err)
+			require.ErrorIs(t, domain.ErrReservationNotFound, err)
 		})
 		t.Run("internal server error", func(t *testing.T) {
 			t.Parallel()
@@ -481,7 +481,7 @@ func Test_DeleteReservation(t *testing.T) {
 			err := s.DeleteReservation(id)
 
 			// assert
-			require.Equal(t, bussiness_logic.ErrInternalServer, err)
+			require.Equal(t, domain.ErrInternalServer, err)
 		})
 	})
 }
@@ -524,7 +524,7 @@ func Test_UpdateReservation(t *testing.T) {
 			err := s.UpdateReservation(res)
 
 			// assert
-			require.ErrorIs(t, bussiness_logic.ErrReservationNotFound, err)
+			require.ErrorIs(t, domain.ErrReservationNotFound, err)
 		})
 		t.Run("internal server error", func(t *testing.T) {
 			t.Parallel()
@@ -541,7 +541,7 @@ func Test_UpdateReservation(t *testing.T) {
 			err := s.UpdateReservation(res)
 
 			// assert
-			require.ErrorIs(t, bussiness_logic.ErrInternalServer, err)
+			require.ErrorIs(t, domain.ErrInternalServer, err)
 		})
 	})
 }

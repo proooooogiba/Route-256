@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package hotel;
+option go_package = "internal/pkg/pb";
+
+service HotelService {
+  rpc CreateRoom (CreateRoomRequest) returns (CreateRoomResponse) {}
+  rpc GetRoomWithAllReservations (GetRoomRequest) returns (GetRoomResponse) {}
+  rpc UpdateRoom (UpdateRoomRequest) returns (UpdateRoomResponse) {}
+  rpc DeleteRoomWithAllReservations (DeleteRoomRequest) returns (DeleteRoomResponse) {}
+
+  rpc CreateReservation (CreateReservationRequest) returns (CreateReservationResponse) {}
+  rpc GetReservation (GetReservationRequest) returns (GetReservationResponse) {}
+  rpc UpdateReservation (UpdateReservationRequest) returns (UpdateReservationResponse) {}
+  rpc DeleteReservation (DeleteReservationRequest) returns (DeleteReservationResponse) {}
+}
+
+message CreateRoomRequest {
+  string name = 1;
+  double cost = 2;
+}
+
+message CreateRoomResponse {
+  int64 id = 1;
+}
+
+message GetRoomRequest {
+  int64 id = 1;
+}
+
+message GetRoomResponse {
+  int64 id = 1;
+  string name = 2 ;
+  double cost = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+  repeated GetReservationResponse reservations = 6;
+}
+
+message UpdateRoomRequest {
+  int64 id = 1;
+  string name = 2;
+  double cost = 3;
+}
+
+message UpdateRoomResponse {
+  bool ok = 1;
+}
+
+message DeleteRoomRequest {
+  int64 id = 1;
+}
+
+message DeleteRoomResponse {
+  bool ok = 1;
+}
+
+message CreateReservationRequest {
+  string start_date = 1;
+  string end_date = 2;
+  int64 room_id = 3;
+}
+
+message CreateReservationResponse {
+  int64 id = 1;
+}
+
+message GetReservationRequest {
+  int64 id = 1;
+}
+
+message GetReservationResponse {
+  int64 id = 1;
+  string start_date = 2;
+  string end_date = 3;
+  int64 room_id = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message UpdateReservationRequest {
+  int64 id = 1;
+  string start_date = 2;
+  string end_date = 3;
+  int64 room_id = 4;
+}
+
+message UpdateReservationResponse {
+  bool ok = 1;
+}
+
+message DeleteReservationRequest {
+  int64 id = 1;
+}
+
+message DeleteReservationResponse {
+  bool ok = 1;
+}

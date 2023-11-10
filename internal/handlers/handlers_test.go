@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
-	"homework-3/internal/pkg/bussiness_logic/mocks"
+	"homework-3/internal/pkg/domain/mocks"
 	"homework-3/internal/pkg/models"
 	"homework-3/internal/pkg/parser"
 	mock_parser "homework-3/internal/pkg/parser/mocks"

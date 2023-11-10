@@ -1,4 +1,4 @@
-package main
+package http_server
 
 import (
 	"bytes"
@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"homework-3/internal/handlers"
-	"homework-3/internal/pkg/bussiness_logic"
+	"homework-3/internal/pkg/domain"
 	"io"
 	"net/http"
 	"strconv"
 )
 
-func routes(hotel *handlers.Service) *mux.Router {
+func Routes(hotel *handlers.Service) *mux.Router {
 	router := mux.NewRouter()
 	router.HandleFunc("/room", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -28,9 +28,9 @@ func routes(hotel *handlers.Service) *mux.Router {
 			switch {
 			case errors.Is(err, nil):
 				w.WriteHeader(http.StatusOK)
-			case errors.Is(err, bussiness_logic.ErrInternalServer):
+			case errors.Is(err, domain.ErrInternalServer):
 				w.WriteHeader(http.StatusInternalServerError)
-			case errors.Is(err, bussiness_logic.ErrRoomAlreadyExists):
+			case errors.Is(err, domain.ErrRoomAlreadyExists):
 				w.WriteHeader(http.StatusConflict)
 			default:
 				w.WriteHeader(http.StatusInternalServerError)
@@ -46,9 +46,9 @@ func routes(hotel *handlers.Service) *mux.Router {
 			switch {
 			case errors.Is(err, nil):
 				w.WriteHeader(http.StatusOK)
-			case errors.Is(err, bussiness_logic.ErrInternalServer):
+			case errors.Is(err, domain.ErrInternalServer):
 				w.WriteHeader(http.StatusInternalServerError)
-			case errors.Is(err, bussiness_logic.ErrRoomNotFound):
+			case errors.Is(err, domain.ErrRoomNotFound):
 				w.WriteHeader(http.StatusNotFound)
 			default:
 				w.WriteHeader(http.StatusInternalServerError)
@@ -73,9 +73,9 @@ func routes(hotel *handlers.Service) *mux.Router {
 				switch {
 				case errors.Is(err, nil):
 					w.WriteHeader(http.StatusOK)
-				case errors.Is(err, bussiness_logic.ErrInternalServer):
+				case errors.Is(err, domain.ErrInternalServer):
 					w.WriteHeader(http.StatusInternalServerError)
-				case errors.Is(err, bussiness_logic.ErrRoomNotFound):
+				case errors.Is(err, domain.ErrRoomNotFound):
 					w.WriteHeader(http.StatusNotFound)
 				default:
 					w.WriteHeader(http.StatusInternalServerError)
@@ -114,9 +114,9 @@ func routes(hotel *handlers.Service) *mux.Router {
 			switch {
 			case errors.Is(err, nil):
 				w.WriteHeader(http.StatusOK)
-			case errors.Is(err, bussiness_logic.ErrInternalServer):
+			case errors.Is(err, domain.ErrInternalServer):
 				w.WriteHeader(http.StatusInternalServerError)
-			case errors.Is(err, bussiness_logic.ErrReservationNotFound):
+			case errors.Is(err, domain.ErrReservationNotFound):
 				w.WriteHeader(http.StatusNotFound)
 			default:
 				w.WriteHeader(http.StatusInternalServerError)
@@ -140,9 +140,9 @@ func routes(hotel *handlers.Service) *mux.Router {
 			switch {
 			case errors.Is(err, nil):
 				w.WriteHeader(http.StatusOK)
-			case errors.Is(err, bussiness_logic.ErrInternalServer):
+			case errors.Is(err, domain.ErrInternalServer):
 				w.WriteHeader(http.StatusInternalServerError)
-			case errors.Is(err, bussiness_logic.ErrRoomNotFound):
+			case errors.Is(err, domain.ErrRoomNotFound):
 				w.WriteHeader(http.StatusNotFound)
 			default:
 				w.WriteHeader(http.StatusInternalServerError)
@@ -158,9 +158,9 @@ func routes(hotel *handlers.Service) *mux.Router {
 			switch {
 			case errors.Is(err, nil):
 				w.WriteHeader(http.StatusOK)
-			case errors.Is(err, bussiness_logic.ErrInternalServer):
+			case errors.Is(err, domain.ErrInternalServer):
 				w.WriteHeader(http.StatusInternalServerError)
-			case errors.Is(err, bussiness_logic.ErrReservationNotFound):
+			case errors.Is(err, domain.ErrReservationNotFound):
 				w.WriteHeader(http.StatusNotFound)
 			default:
 				w.WriteHeader(http.StatusInternalServerError)
@@ -182,9 +182,9 @@ func routes(hotel *handlers.Service) *mux.Router {
 			res, err := hotel.GetReservation(http.MethodGet, key, true)
 			if err != nil {
 				switch {
-				case errors.Is(err, bussiness_logic.ErrReservationNotFound):
+				case errors.Is(err, domain.ErrReservationNotFound):
 					w.WriteHeader(http.StatusNotFound)
-				case errors.Is(err, bussiness_logic.ErrInternalServer):
+				case errors.Is(err, domain.ErrInternalServer):
 					w.WriteHeader(http.StatusInternalServerError)
 				}
 				return
@@ -208,9 +208,9 @@ func routes(hotel *handlers.Service) *mux.Router {
 			switch {
 			case errors.Is(err, nil):
 				w.WriteHeader(http.StatusOK)
-			case errors.Is(err, bussiness_logic.ErrInternalServer):
+			case errors.Is(err, domain.ErrInternalServer):
 				w.WriteHeader(http.StatusInternalServerError)
-			case errors.Is(err, bussiness_logic.ErrReservationNotFound):
+			case errors.Is(err, domain.ErrReservationNotFound):
 				w.WriteHeader(http.StatusNotFound)
 			}
 

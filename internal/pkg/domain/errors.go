@@ -1,4 +1,4 @@
-package bussiness_logic
+package domain
 
 import "errors"
 

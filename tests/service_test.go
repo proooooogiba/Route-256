@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 	"homework-3/internal/handlers"
-	"homework-3/internal/pkg/bussiness_logic/hotel_repo"
+	"homework-3/internal/pkg/domain/hotel_repo"
 	"homework-3/internal/pkg/parser/parser_request"
 	"homework-3/internal/pkg/repository/dbrepo"
 	"homework-3/internal/producer"

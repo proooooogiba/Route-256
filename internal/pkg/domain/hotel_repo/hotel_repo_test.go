@@ -1,6 +1,7 @@
 package hotel_repo
 
 import (
+	"context"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -17,6 +18,7 @@ func Test_GetRoomWithAllReservations(t *testing.T) {
 	var (
 		id   int64 = 1
 		room       = fixtures.Room().Valid().P()
+		ctx        = context.Background()
 	)
 
 	reservations := make([]*models.Reservation, 2, 4)
@@ -34,11 +36,11 @@ func Test_GetRoomWithAllReservations(t *testing.T) {
 			m := mock_repository.NewMockDatabaseRepo(ctrl)
 			s := NewRepo(m)
 
-			m.EXPECT().GetRoomByID(id).Return(room, nil)
-			m.EXPECT().GetReservationsByRoomID(id).Return(nil, nil)
+			m.EXPECT().GetRoomByID(gomock.Any(), id).Return(room, nil)
+			m.EXPECT().GetReservationsByRoomID(gomock.Any(), id).Return(nil, nil)
 
 			//act
-			getRoom, getReservations, err := s.GetRoomWithAllReservations(id)
+			getRoom, getReservations, err := s.GetRoomWithAllReservations(ctx, id)
 
 			// assert
 			require.Nil(t, err)
@@ -54,10 +56,10 @@ func Test_GetRoomWithAllReservations(t *testing.T) {
 			m := mock_repository.NewMockDatabaseRepo(ctrl)
 			s := NewRepo(m)
 
-			m.EXPECT().GetRoomByID(id).Return(room, nil)
-			m.EXPECT().GetReservationsByRoomID(id).Return(reservations, nil)
+			m.EXPECT().GetRoomByID(gomock.Any(), id).Return(room, nil)
+			m.EXPECT().GetReservationsByRoomID(gomock.Any(), id).Return(reservations, nil)
 			//act
-			getRoom, getReservations, err := s.GetRoomWithAllReservations(id)
+			getRoom, getReservations, err := s.GetRoomWithAllReservations(ctx, id)
 
 			// assert
 			require.Nil(t, err)
@@ -78,9 +80,9 @@ func Test_GetRoomWithAllReservations(t *testing.T) {
 			m := mock_repository.NewMockDatabaseRepo(ctrl)
 			s := NewRepo(m)
 
-			m.EXPECT().GetRoomByID(id).Return(nil, repository.ErrObjectNotFound)
+			m.EXPECT().GetRoomByID(gomock.Any(), id).Return(nil, repository.ErrObjectNotFound)
 			//act
-			getRoom, getReservations, err := s.GetRoomWithAllReservations(id)
+			getRoom, getReservations, err := s.GetRoomWithAllReservations(ctx, id)
 
 			// assert
 			require.ErrorIs(t, domain.ErrRoomNotFound, err)
@@ -96,10 +98,10 @@ func Test_GetRoomWithAllReservations(t *testing.T) {
 			m := mock_repository.NewMockDatabaseRepo(ctrl)
 			s := NewRepo(m)
 
-			m.EXPECT().GetRoomByID(id).Return(room, nil)
-			m.EXPECT().GetReservationsByRoomID(id).Return(nil, errors.New("Error while getting reservations by room id"))
+			m.EXPECT().GetRoomByID(gomock.Any(), id).Return(room, nil)
+			m.EXPECT().GetReservationsByRoomID(gomock.Any(), id).Return(nil, errors.New("Error while getting reservations by room id"))
 			//act
-			getRoom, getReservations, err := s.GetRoomWithAllReservations(id)
+			getRoom, getReservations, err := s.GetRoomWithAllReservations(ctx, id)
 
 			// assert
 			require.ErrorIs(t, domain.ErrInternalServer, err)
@@ -113,6 +115,7 @@ func Test_CreateRoom(t *testing.T) {
 		id   int64 = 1
 		name       = "Lux"
 		room       = fixtures.Room().Valid().V()
+		ctx        = context.Background()
 	)
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
@@ -123,10 +126,10 @@ func Test_CreateRoom(t *testing.T) {
 		m := mock_repository.NewMockDatabaseRepo(ctrl)
 		s := NewRepo(m)
 
-		m.EXPECT().GetRoomByName(name).Return(nil, repository.ErrObjectNotFound)
-		m.EXPECT().InsertRoom(&room).Return(id, nil)
+		m.EXPECT().GetRoomByName(gomock.Any(), name).Return(nil, repository.ErrObjectNotFound)
+		m.EXPECT().InsertRoom(gomock.Any(), &room).Return(id, nil)
 		//act
-		roomID, err := s.CreateRoom(room)
+		roomID, err := s.CreateRoom(ctx, room)
 
 		// assert
 		require.Nil(t, err)
@@ -144,9 +147,9 @@ func Test_CreateRoom(t *testing.T) {
 			m := mock_repository.NewMockDatabaseRepo(ctrl)
 			s := NewRepo(m)
 
-			m.EXPECT().GetRoomByName(name).Return(nil, nil)
+			m.EXPECT().GetRoomByName(gomock.Any(), name).Return(nil, nil)
 			//act
-			roomID, err := s.CreateRoom(room)
+			roomID, err := s.CreateRoom(ctx, room)
 
 			// assert
 			require.ErrorIs(t, domain.ErrRoomAlreadyExists, err)
@@ -161,11 +164,11 @@ func Test_CreateRoom(t *testing.T) {
 			m := mock_repository.NewMockDatabaseRepo(ctrl)
 			s := NewRepo(m)
 
-			m.EXPECT().GetRoomByName(name).Return(nil, repository.ErrObjectNotFound)
-			m.EXPECT().InsertRoom(&room).Return(id, repository.ErrInternalServer)
+			m.EXPECT().GetRoomByName(gomock.Any(), name).Return(nil, repository.ErrObjectNotFound)
+			m.EXPECT().InsertRoom(gomock.Any(), &room).Return(id, repository.ErrInternalServer)
 
 			//act
-			roomID, err := s.CreateRoom(room)
+			roomID, err := s.CreateRoom(ctx, room)
 
 			// assert
 			require.ErrorIs(t, domain.ErrInternalServer, err)
@@ -182,6 +185,7 @@ func Test_UpdateRoom(t *testing.T) {
 			Name: "Lux",
 			Cost: 1000.0,
 		}
+		ctx = context.Background()
 	)
 
 	t.Run("success", func(t *testing.T) {
@@ -193,11 +197,10 @@ func Test_UpdateRoom(t *testing.T) {
 		m := mock_repository.NewMockDatabaseRepo(ctrl)
 		s := NewRepo(m)
 
-		m.EXPECT().GetRoomByID(id).Return(&room, nil)
-
-		m.EXPECT().UpdateRoom(&room).Return(nil)
+		m.EXPECT().GetRoomByID(gomock.Any(), id).Return(&room, nil)
+		m.EXPECT().UpdateRoom(gomock.Any(), &room).Return(nil)
 		//act
-		err := s.UpdateRoom(room)
+		err := s.UpdateRoom(ctx, room)
 
 		// assert
 		require.Nil(t, err)
@@ -214,9 +217,9 @@ func Test_UpdateRoom(t *testing.T) {
 			m := mock_repository.NewMockDatabaseRepo(ctrl)
 			s := NewRepo(m)
 
-			m.EXPECT().GetRoomByID(id).Return(nil, repository.ErrObjectNotFound)
+			m.EXPECT().GetRoomByID(gomock.Any(), id).Return(nil, repository.ErrObjectNotFound)
 			//act
-			err := s.UpdateRoom(room)
+			err := s.UpdateRoom(ctx, room)
 
 			// assert
 			require.ErrorIs(t, domain.ErrRoomNotFound, err)
@@ -231,10 +234,10 @@ func Test_UpdateRoom(t *testing.T) {
 			m := mock_repository.NewMockDatabaseRepo(ctrl)
 			s := NewRepo(m)
 
-			m.EXPECT().GetRoomByID(id).Return(&room, nil)
-			m.EXPECT().UpdateRoom(&room).Return(repository.ErrInternalServer)
+			m.EXPECT().GetRoomByID(gomock.Any(), id).Return(&room, nil)
+			m.EXPECT().UpdateRoom(gomock.Any(), &room).Return(repository.ErrInternalServer)
 			//act
-			err := s.UpdateRoom(room)
+			err := s.UpdateRoom(ctx, room)
 
 			// assert
 			require.Equal(t, domain.ErrInternalServer, err)
@@ -244,7 +247,10 @@ func Test_UpdateRoom(t *testing.T) {
 }
 
 func Test_DeleteRoomWithAllReservations(t *testing.T) {
-	var id int64 = 1
+	var (
+		id  int64 = 1
+		ctx       = context.Background()
+	)
 
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
@@ -255,11 +261,11 @@ func Test_DeleteRoomWithAllReservations(t *testing.T) {
 		m := mock_repository.NewMockDatabaseRepo(ctrl)
 		s := NewRepo(m)
 
-		m.EXPECT().DeleteRoomByID(id).Return(nil)
-		m.EXPECT().DeleteReservationsByRoomID(id).Return(nil)
+		m.EXPECT().DeleteRoomByID(gomock.Any(), id).Return(nil)
+		m.EXPECT().DeleteReservationsByRoomID(gomock.Any(), id).Return(nil)
 
 		//act
-		err := s.DeleteRoomWithAllReservations(id)
+		err := s.DeleteRoomWithAllReservations(ctx, id)
 
 		// assert
 		require.Nil(t, err)
@@ -276,11 +282,9 @@ func Test_DeleteRoomWithAllReservations(t *testing.T) {
 			m := mock_repository.NewMockDatabaseRepo(ctrl)
 			s := NewRepo(m)
 
-			m.EXPECT().DeleteRoomByID(id).Return(repository.ErrObjectNotFound)
-			//m.EXPECT().DeleteReservationsByRoomID(id).Return(repository.ErrInternalServer)
-
+			m.EXPECT().DeleteRoomByID(gomock.Any(), id).Return(repository.ErrObjectNotFound)
 			//act
-			err := s.DeleteRoomWithAllReservations(id)
+			err := s.DeleteRoomWithAllReservations(ctx, id)
 
 			// assert
 			require.ErrorIs(t, domain.ErrRoomNotFound, err)
@@ -295,10 +299,9 @@ func Test_DeleteRoomWithAllReservations(t *testing.T) {
 			m := mock_repository.NewMockDatabaseRepo(ctrl)
 			s := NewRepo(m)
 
-			m.EXPECT().DeleteRoomByID(id).Return(repository.ErrInternalServer)
-
+			m.EXPECT().DeleteRoomByID(gomock.Any(), id).Return(repository.ErrInternalServer)
 			//act
-			err := s.DeleteRoomWithAllReservations(id)
+			err := s.DeleteRoomWithAllReservations(ctx, id)
 
 			// assert
 			require.ErrorIs(t, domain.ErrInternalServer, err)
@@ -313,11 +316,11 @@ func Test_DeleteRoomWithAllReservations(t *testing.T) {
 			m := mock_repository.NewMockDatabaseRepo(ctrl)
 			s := NewRepo(m)
 
-			m.EXPECT().DeleteRoomByID(id).Return(nil)
-			m.EXPECT().DeleteReservationsByRoomID(id).Return(repository.ErrInternalServer)
+			m.EXPECT().DeleteRoomByID(gomock.Any(), id).Return(nil)
+			m.EXPECT().DeleteReservationsByRoomID(gomock.Any(), id).Return(repository.ErrInternalServer)
 
 			//act
-			err := s.DeleteRoomWithAllReservations(id)
+			err := s.DeleteRoomWithAllReservations(ctx, id)
 
 			// assert
 			require.ErrorIs(t, domain.ErrInternalServer, err)
@@ -329,6 +332,7 @@ func Test_GetReservation(t *testing.T) {
 	var (
 		id  int64 = 1
 		res       = fixtures.Reservation().Valid().P()
+		ctx       = context.Background()
 	)
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
@@ -339,9 +343,9 @@ func Test_GetReservation(t *testing.T) {
 		m := mock_repository.NewMockDatabaseRepo(ctrl)
 		s := NewRepo(m)
 
-		m.EXPECT().GetReservationByID(id).Return(res, nil)
+		m.EXPECT().GetReservationByID(gomock.Any(), id).Return(res, nil)
 		//act
-		reservation, err := s.GetReservation(id)
+		reservation, err := s.GetReservation(ctx, id)
 
 		// assert
 		require.Nil(t, err)
@@ -357,9 +361,9 @@ func Test_GetReservation(t *testing.T) {
 		m := mock_repository.NewMockDatabaseRepo(ctrl)
 		s := NewRepo(m)
 
-		m.EXPECT().GetReservationByID(id).Return(nil, repository.ErrObjectNotFound)
+		m.EXPECT().GetReservationByID(gomock.Any(), id).Return(nil, repository.ErrObjectNotFound)
 		//act
-		result, err := s.GetReservation(id)
+		result, err := s.GetReservation(ctx, id)
 
 		// assert
 		require.ErrorIs(t, domain.ErrReservationNotFound, err)
@@ -372,6 +376,7 @@ func Test_CreateReservation(t *testing.T) {
 		id   int64 = 1
 		room       = fixtures.Room().Valid().V()
 		res        = fixtures.Reservation().Valid().V()
+		ctx        = context.Background()
 	)
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
@@ -382,10 +387,10 @@ func Test_CreateReservation(t *testing.T) {
 		m := mock_repository.NewMockDatabaseRepo(ctrl)
 		s := NewRepo(m)
 
-		m.EXPECT().GetRoomByID(id).Return(&room, nil)
-		m.EXPECT().InsertReservation(&res).Return(id, nil)
+		m.EXPECT().GetRoomByID(gomock.Any(), id).Return(&room, nil)
+		m.EXPECT().InsertReservation(gomock.Any(), &res).Return(id, nil)
 		//act
-		_, err := s.CreateReservation(res)
+		_, err := s.CreateReservation(ctx, res)
 
 		// assert
 		require.Nil(t, err)
@@ -403,9 +408,9 @@ func Test_CreateReservation(t *testing.T) {
 			m := mock_repository.NewMockDatabaseRepo(ctrl)
 			s := NewRepo(m)
 
-			m.EXPECT().GetRoomByID(id).Return(nil, repository.ErrObjectNotFound)
+			m.EXPECT().GetRoomByID(gomock.Any(), id).Return(nil, repository.ErrObjectNotFound)
 			//act
-			_, err := s.CreateReservation(res)
+			_, err := s.CreateReservation(ctx, res)
 
 			// assert
 			require.ErrorIs(t, domain.ErrRoomNotFound, err)
@@ -420,10 +425,10 @@ func Test_CreateReservation(t *testing.T) {
 			m := mock_repository.NewMockDatabaseRepo(ctrl)
 			s := NewRepo(m)
 
-			m.EXPECT().GetRoomByID(id).Return(&room, nil)
-			m.EXPECT().InsertReservation(&res).Return(int64(0), repository.ErrInternalServer)
+			m.EXPECT().GetRoomByID(gomock.Any(), id).Return(&room, nil)
+			m.EXPECT().InsertReservation(gomock.Any(), &res).Return(int64(0), repository.ErrInternalServer)
 			//act
-			_, err := s.CreateReservation(res)
+			_, err := s.CreateReservation(ctx, res)
 
 			// assert
 			require.ErrorIs(t, domain.ErrInternalServer, err)
@@ -432,7 +437,10 @@ func Test_CreateReservation(t *testing.T) {
 }
 
 func Test_DeleteReservation(t *testing.T) {
-	var id int64 = 1
+	var (
+		id  int64 = 1
+		ctx       = context.Background()
+	)
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 
@@ -442,9 +450,9 @@ func Test_DeleteReservation(t *testing.T) {
 		m := mock_repository.NewMockDatabaseRepo(ctrl)
 		s := NewRepo(m)
 
-		m.EXPECT().DeleteReservationByID(id).Return(nil)
+		m.EXPECT().DeleteReservationByID(gomock.Any(), id).Return(nil)
 		//act
-		err := s.DeleteReservation(id)
+		err := s.DeleteReservation(ctx, id)
 
 		// assert
 		require.Nil(t, err)
@@ -460,9 +468,9 @@ func Test_DeleteReservation(t *testing.T) {
 			m := mock_repository.NewMockDatabaseRepo(ctrl)
 			s := NewRepo(m)
 
-			m.EXPECT().DeleteReservationByID(id).Return(repository.ErrObjectNotFound)
+			m.EXPECT().DeleteReservationByID(gomock.Any(), id).Return(repository.ErrObjectNotFound)
 			//act
-			err := s.DeleteReservation(id)
+			err := s.DeleteReservation(ctx, id)
 
 			// assert
 			require.ErrorIs(t, domain.ErrReservationNotFound, err)
@@ -476,9 +484,9 @@ func Test_DeleteReservation(t *testing.T) {
 			m := mock_repository.NewMockDatabaseRepo(ctrl)
 			s := NewRepo(m)
 
-			m.EXPECT().DeleteReservationByID(id).Return(repository.ErrInternalServer)
+			m.EXPECT().DeleteReservationByID(gomock.Any(), id).Return(repository.ErrInternalServer)
 			//act
-			err := s.DeleteReservation(id)
+			err := s.DeleteReservation(ctx, id)
 
 			// assert
 			require.Equal(t, domain.ErrInternalServer, err)
@@ -490,6 +498,7 @@ func Test_UpdateReservation(t *testing.T) {
 	var (
 		id  int64 = 1
 		res       = fixtures.Reservation().Valid().V()
+		ctx       = context.Background()
 	)
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
@@ -500,10 +509,10 @@ func Test_UpdateReservation(t *testing.T) {
 		m := mock_repository.NewMockDatabaseRepo(ctrl)
 		s := NewRepo(m)
 
-		m.EXPECT().GetReservationByID(id).Return(&res, nil)
-		m.EXPECT().UpdateReservation(&res).Return(nil)
+		m.EXPECT().GetReservationByID(gomock.Any(), id).Return(&res, nil)
+		m.EXPECT().UpdateReservation(gomock.Any(), &res).Return(nil)
 		//act
-		err := s.UpdateReservation(res)
+		err := s.UpdateReservation(ctx, res)
 
 		// assert
 		require.Nil(t, err)
@@ -519,9 +528,9 @@ func Test_UpdateReservation(t *testing.T) {
 			m := mock_repository.NewMockDatabaseRepo(ctrl)
 			s := NewRepo(m)
 
-			m.EXPECT().GetReservationByID(id).Return(nil, repository.ErrObjectNotFound)
+			m.EXPECT().GetReservationByID(gomock.Any(), id).Return(nil, repository.ErrObjectNotFound)
 			//act
-			err := s.UpdateReservation(res)
+			err := s.UpdateReservation(ctx, res)
 
 			// assert
 			require.ErrorIs(t, domain.ErrReservationNotFound, err)
@@ -535,10 +544,10 @@ func Test_UpdateReservation(t *testing.T) {
 			m := mock_repository.NewMockDatabaseRepo(ctrl)
 			s := NewRepo(m)
 
-			m.EXPECT().GetReservationByID(id).Return(&res, nil)
-			m.EXPECT().UpdateReservation(&res).Return(repository.ErrInternalServer)
+			m.EXPECT().GetReservationByID(gomock.Any(), id).Return(&res, nil)
+			m.EXPECT().UpdateReservation(gomock.Any(), &res).Return(repository.ErrInternalServer)
 			//act
-			err := s.UpdateReservation(res)
+			err := s.UpdateReservation(ctx, res)
 
 			// assert
 			require.ErrorIs(t, domain.ErrInternalServer, err)

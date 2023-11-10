@@ -3,6 +3,7 @@
 package handlers
 
 import (
+	"context"
 	"homework-3/internal/pkg/domain"
 	"homework-3/internal/pkg/models"
 	"homework-3/internal/pkg/parser"
@@ -24,12 +25,13 @@ func NewService(repo domain.Repository, sender sender.Sender, parser parser.Pars
 }
 
 func (s *Service) GetRoomWithAllReservations(method string, roomID int64, sync bool) (*models.Room, []*models.Reservation, error) {
-
 	err := s.sender.Send(method, []byte(""), sync)
 	if err != nil {
 		return nil, nil, err
 	}
-	room, reservations, err := s.repo.GetRoomWithAllReservations(roomID)
+
+	ctx := context.Background()
+	room, reservations, err := s.repo.GetRoomWithAllReservations(ctx, roomID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -48,7 +50,8 @@ func (s *Service) CreateRoom(method string, body []byte, sync bool) (int64, erro
 		return 0, err
 	}
 
-	roomID, err := s.repo.CreateRoom(room)
+	ctx := context.Background()
+	roomID, err := s.repo.CreateRoom(ctx, room)
 	if err != nil {
 		return 0, err
 	}
@@ -67,7 +70,8 @@ func (s *Service) UpdateRoom(method string, body []byte, sync bool) error {
 		return err
 	}
 
-	err = s.repo.UpdateRoom(room)
+	ctx := context.Background()
+	err = s.repo.UpdateRoom(ctx, room)
 	if err != nil {
 		return err
 	}
@@ -81,7 +85,8 @@ func (s *Service) DeleteRoomWithAllReservations(method string, roomID int64, syn
 		return err
 	}
 
-	err = s.repo.DeleteRoomWithAllReservations(roomID)
+	ctx := context.Background()
+	err = s.repo.DeleteRoomWithAllReservations(ctx, roomID)
 	if err != nil {
 		return err
 	}
@@ -95,7 +100,8 @@ func (s *Service) GetReservation(method string, resID int64, sync bool) (*models
 		return nil, err
 	}
 
-	reservation, err := s.repo.GetReservation(resID)
+	ctx := context.Background()
+	reservation, err := s.repo.GetReservation(ctx, resID)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +115,8 @@ func (s *Service) DeleteReservation(method string, resID int64, sync bool) error
 		return err
 	}
 
-	err = s.repo.DeleteReservation(resID)
+	ctx := context.Background()
+	err = s.repo.DeleteReservation(ctx, resID)
 	if err != nil {
 		return err
 	}
@@ -128,7 +135,8 @@ func (s *Service) CreateReservation(method string, body []byte, sync bool) (int6
 		return 0, err
 	}
 
-	resID, err := s.repo.CreateReservation(reservation)
+	ctx := context.Background()
+	resID, err := s.repo.CreateReservation(ctx, reservation)
 	if err != nil {
 		return 0, err
 	}
@@ -147,7 +155,8 @@ func (s *Service) UpdateReservation(method string, body []byte, sync bool) error
 		return err
 	}
 
-	err = s.repo.UpdateReservation(reservation)
+	ctx := context.Background()
+	err = s.repo.UpdateReservation(ctx, reservation)
 	if err != nil {
 		return err
 	}

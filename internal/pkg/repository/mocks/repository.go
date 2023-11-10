@@ -5,6 +5,7 @@
 package mock_repository
 
 import (
+	context "context"
 	models "homework-3/internal/pkg/models"
 	reflect "reflect"
 
@@ -35,161 +36,161 @@ func (m *MockDatabaseRepo) EXPECT() *MockDatabaseRepoMockRecorder {
 }
 
 // DeleteReservationByID mocks base method.
-func (m *MockDatabaseRepo) DeleteReservationByID(id int64) error {
+func (m *MockDatabaseRepo) DeleteReservationByID(ctx context.Context, id int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteReservationByID", id)
+	ret := m.ctrl.Call(m, "DeleteReservationByID", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteReservationByID indicates an expected call of DeleteReservationByID.
-func (mr *MockDatabaseRepoMockRecorder) DeleteReservationByID(id interface{}) *gomock.Call {
+func (mr *MockDatabaseRepoMockRecorder) DeleteReservationByID(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteReservationByID", reflect.TypeOf((*MockDatabaseRepo)(nil).DeleteReservationByID), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteReservationByID", reflect.TypeOf((*MockDatabaseRepo)(nil).DeleteReservationByID), ctx, id)
 }
 
 // DeleteReservationsByRoomID mocks base method.
-func (m *MockDatabaseRepo) DeleteReservationsByRoomID(roomId int64) error {
+func (m *MockDatabaseRepo) DeleteReservationsByRoomID(ctx context.Context, roomId int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteReservationsByRoomID", roomId)
+	ret := m.ctrl.Call(m, "DeleteReservationsByRoomID", ctx, roomId)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteReservationsByRoomID indicates an expected call of DeleteReservationsByRoomID.
-func (mr *MockDatabaseRepoMockRecorder) DeleteReservationsByRoomID(roomId interface{}) *gomock.Call {
+func (mr *MockDatabaseRepoMockRecorder) DeleteReservationsByRoomID(ctx, roomId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteReservationsByRoomID", reflect.TypeOf((*MockDatabaseRepo)(nil).DeleteReservationsByRoomID), roomId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteReservationsByRoomID", reflect.TypeOf((*MockDatabaseRepo)(nil).DeleteReservationsByRoomID), ctx, roomId)
 }
 
 // DeleteRoomByID mocks base method.
-func (m *MockDatabaseRepo) DeleteRoomByID(id int64) error {
+func (m *MockDatabaseRepo) DeleteRoomByID(ctx context.Context, id int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteRoomByID", id)
+	ret := m.ctrl.Call(m, "DeleteRoomByID", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteRoomByID indicates an expected call of DeleteRoomByID.
-func (mr *MockDatabaseRepoMockRecorder) DeleteRoomByID(id interface{}) *gomock.Call {
+func (mr *MockDatabaseRepoMockRecorder) DeleteRoomByID(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRoomByID", reflect.TypeOf((*MockDatabaseRepo)(nil).DeleteRoomByID), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRoomByID", reflect.TypeOf((*MockDatabaseRepo)(nil).DeleteRoomByID), ctx, id)
 }
 
 // GetReservationByID mocks base method.
-func (m *MockDatabaseRepo) GetReservationByID(id int64) (*models.Reservation, error) {
+func (m *MockDatabaseRepo) GetReservationByID(ctx context.Context, id int64) (*models.Reservation, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetReservationByID", id)
+	ret := m.ctrl.Call(m, "GetReservationByID", ctx, id)
 	ret0, _ := ret[0].(*models.Reservation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetReservationByID indicates an expected call of GetReservationByID.
-func (mr *MockDatabaseRepoMockRecorder) GetReservationByID(id interface{}) *gomock.Call {
+func (mr *MockDatabaseRepoMockRecorder) GetReservationByID(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReservationByID", reflect.TypeOf((*MockDatabaseRepo)(nil).GetReservationByID), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReservationByID", reflect.TypeOf((*MockDatabaseRepo)(nil).GetReservationByID), ctx, id)
 }
 
 // GetReservationsByRoomID mocks base method.
-func (m *MockDatabaseRepo) GetReservationsByRoomID(roomID int64) ([]*models.Reservation, error) {
+func (m *MockDatabaseRepo) GetReservationsByRoomID(ctx context.Context, roomID int64) ([]*models.Reservation, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetReservationsByRoomID", roomID)
+	ret := m.ctrl.Call(m, "GetReservationsByRoomID", ctx, roomID)
 	ret0, _ := ret[0].([]*models.Reservation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetReservationsByRoomID indicates an expected call of GetReservationsByRoomID.
-func (mr *MockDatabaseRepoMockRecorder) GetReservationsByRoomID(roomID interface{}) *gomock.Call {
+func (mr *MockDatabaseRepoMockRecorder) GetReservationsByRoomID(ctx, roomID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReservationsByRoomID", reflect.TypeOf((*MockDatabaseRepo)(nil).GetReservationsByRoomID), roomID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReservationsByRoomID", reflect.TypeOf((*MockDatabaseRepo)(nil).GetReservationsByRoomID), ctx, roomID)
 }
 
 // GetRoomByID mocks base method.
-func (m *MockDatabaseRepo) GetRoomByID(id int64) (*models.Room, error) {
+func (m *MockDatabaseRepo) GetRoomByID(ctx context.Context, id int64) (*models.Room, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRoomByID", id)
+	ret := m.ctrl.Call(m, "GetRoomByID", ctx, id)
 	ret0, _ := ret[0].(*models.Room)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetRoomByID indicates an expected call of GetRoomByID.
-func (mr *MockDatabaseRepoMockRecorder) GetRoomByID(id interface{}) *gomock.Call {
+func (mr *MockDatabaseRepoMockRecorder) GetRoomByID(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoomByID", reflect.TypeOf((*MockDatabaseRepo)(nil).GetRoomByID), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoomByID", reflect.TypeOf((*MockDatabaseRepo)(nil).GetRoomByID), ctx, id)
 }
 
 // GetRoomByName mocks base method.
-func (m *MockDatabaseRepo) GetRoomByName(name string) (*models.Room, error) {
+func (m *MockDatabaseRepo) GetRoomByName(ctx context.Context, name string) (*models.Room, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRoomByName", name)
+	ret := m.ctrl.Call(m, "GetRoomByName", ctx, name)
 	ret0, _ := ret[0].(*models.Room)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetRoomByName indicates an expected call of GetRoomByName.
-func (mr *MockDatabaseRepoMockRecorder) GetRoomByName(name interface{}) *gomock.Call {
+func (mr *MockDatabaseRepoMockRecorder) GetRoomByName(ctx, name interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoomByName", reflect.TypeOf((*MockDatabaseRepo)(nil).GetRoomByName), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoomByName", reflect.TypeOf((*MockDatabaseRepo)(nil).GetRoomByName), ctx, name)
 }
 
 // InsertReservation mocks base method.
-func (m *MockDatabaseRepo) InsertReservation(reservation *models.Reservation) (int64, error) {
+func (m *MockDatabaseRepo) InsertReservation(ctx context.Context, reservation *models.Reservation) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InsertReservation", reservation)
+	ret := m.ctrl.Call(m, "InsertReservation", ctx, reservation)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // InsertReservation indicates an expected call of InsertReservation.
-func (mr *MockDatabaseRepoMockRecorder) InsertReservation(reservation interface{}) *gomock.Call {
+func (mr *MockDatabaseRepoMockRecorder) InsertReservation(ctx, reservation interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertReservation", reflect.TypeOf((*MockDatabaseRepo)(nil).InsertReservation), reservation)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertReservation", reflect.TypeOf((*MockDatabaseRepo)(nil).InsertReservation), ctx, reservation)
 }
 
 // InsertRoom mocks base method.
-func (m *MockDatabaseRepo) InsertRoom(room *models.Room) (int64, error) {
+func (m *MockDatabaseRepo) InsertRoom(ctx context.Context, room *models.Room) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InsertRoom", room)
+	ret := m.ctrl.Call(m, "InsertRoom", ctx, room)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // InsertRoom indicates an expected call of InsertRoom.
-func (mr *MockDatabaseRepoMockRecorder) InsertRoom(room interface{}) *gomock.Call {
+func (mr *MockDatabaseRepoMockRecorder) InsertRoom(ctx, room interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertRoom", reflect.TypeOf((*MockDatabaseRepo)(nil).InsertRoom), room)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertRoom", reflect.TypeOf((*MockDatabaseRepo)(nil).InsertRoom), ctx, room)
 }
 
 // UpdateReservation mocks base method.
-func (m *MockDatabaseRepo) UpdateReservation(res *models.Reservation) error {
+func (m *MockDatabaseRepo) UpdateReservation(ctx context.Context, res *models.Reservation) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateReservation", res)
+	ret := m.ctrl.Call(m, "UpdateReservation", ctx, res)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateReservation indicates an expected call of UpdateReservation.
-func (mr *MockDatabaseRepoMockRecorder) UpdateReservation(res interface{}) *gomock.Call {
+func (mr *MockDatabaseRepoMockRecorder) UpdateReservation(ctx, res interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateReservation", reflect.TypeOf((*MockDatabaseRepo)(nil).UpdateReservation), res)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateReservation", reflect.TypeOf((*MockDatabaseRepo)(nil).UpdateReservation), ctx, res)
 }
 
 // UpdateRoom mocks base method.
-func (m *MockDatabaseRepo) UpdateRoom(room *models.Room) error {
+func (m *MockDatabaseRepo) UpdateRoom(ctx context.Context, room *models.Room) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateRoom", room)
+	ret := m.ctrl.Call(m, "UpdateRoom", ctx, room)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateRoom indicates an expected call of UpdateRoom.
-func (mr *MockDatabaseRepoMockRecorder) UpdateRoom(room interface{}) *gomock.Call {
+func (mr *MockDatabaseRepoMockRecorder) UpdateRoom(ctx, room interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRoom", reflect.TypeOf((*MockDatabaseRepo)(nil).UpdateRoom), room)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRoom", reflect.TypeOf((*MockDatabaseRepo)(nil).UpdateRoom), ctx, room)
 }

@@ -1,6 +1,7 @@
 package dbrepo
 
 import (
+	"context"
 	"github.com/golang/mock/gomock"
 	"github.com/jackc/pgconn"
 	"github.com/stretchr/testify/assert"
@@ -14,7 +15,8 @@ func Test_postgresDBRepo_GetReservationByID(t *testing.T) {
 	t.Parallel()
 
 	var (
-		id = 1
+		id  = 1
+		ctx = context.Background()
 	)
 
 	t.Run("success", func(t *testing.T) {
@@ -26,7 +28,7 @@ func Test_postgresDBRepo_GetReservationByID(t *testing.T) {
 		s.mockDb.EXPECT().Get(gomock.Any(), gomock.Any(), "SELECT id,start_date,end_date,room_id,created_at,updated_at FROM reservations WHERE id=$1", gomock.Any()).Return(nil)
 
 		// act
-		reservation, err := s.repo.GetReservationByID(int64(id))
+		reservation, err := s.repo.GetReservationByID(ctx, int64(id))
 		// assert
 
 		require.NoError(t, err)
@@ -44,7 +46,7 @@ func Test_postgresDBRepo_GetReservationByID(t *testing.T) {
 			s.mockDb.EXPECT().Get(gomock.Any(), gomock.Any(), "SELECT id,start_date,end_date,room_id,created_at,updated_at FROM reservations WHERE id=$1", gomock.Any()).Return(repository.ErrObjectNotFound)
 
 			// act
-			reservation, err := s.repo.GetReservationByID(int64(id))
+			reservation, err := s.repo.GetReservationByID(ctx, int64(id))
 			// assert
 			require.EqualError(t, err, "object not found")
 
@@ -60,7 +62,7 @@ func Test_postgresDBRepo_GetReservationByID(t *testing.T) {
 			s.mockDb.EXPECT().Get(gomock.Any(), gomock.Any(), "SELECT id,start_date,end_date,room_id,created_at,updated_at FROM reservations WHERE id=$1", gomock.Any()).Return(assert.AnError)
 
 			// act
-			reservation, err := s.repo.GetReservationByID(int64(id))
+			reservation, err := s.repo.GetReservationByID(ctx, int64(id))
 			// assert
 			require.EqualError(t, err, "assert.AnError general error for testing")
 
@@ -73,7 +75,8 @@ func Test_postgresDBRepo_GetRoomByID(t *testing.T) {
 	t.Parallel()
 
 	var (
-		id = 1
+		id  = 1
+		ctx = context.Background()
 	)
 
 	t.Run("success", func(t *testing.T) {
@@ -85,7 +88,7 @@ func Test_postgresDBRepo_GetRoomByID(t *testing.T) {
 		s.mockDb.EXPECT().Get(gomock.Any(), gomock.Any(), "SELECT id,name,cost,created_at,updated_at FROM rooms WHERE id=$1", gomock.Any()).Return(nil)
 
 		// act
-		reservation, err := s.repo.GetRoomByID(int64(id))
+		reservation, err := s.repo.GetRoomByID(ctx, int64(id))
 		// assert
 
 		require.NoError(t, err)
@@ -103,7 +106,7 @@ func Test_postgresDBRepo_GetRoomByID(t *testing.T) {
 			s.mockDb.EXPECT().Get(gomock.Any(), gomock.Any(), "SELECT id,name,cost,created_at,updated_at FROM rooms WHERE id=$1", gomock.Any()).Return(repository.ErrObjectNotFound)
 
 			// act
-			reservation, err := s.repo.GetRoomByID(int64(id))
+			reservation, err := s.repo.GetRoomByID(ctx, int64(id))
 			// assert
 			require.EqualError(t, err, "object not found")
 
@@ -119,7 +122,7 @@ func Test_postgresDBRepo_GetRoomByID(t *testing.T) {
 			s.mockDb.EXPECT().Get(gomock.Any(), gomock.Any(), "SELECT id,name,cost,created_at,updated_at FROM rooms WHERE id=$1", gomock.Any()).Return(assert.AnError)
 
 			// act
-			reservation, err := s.repo.GetRoomByID(int64(id))
+			reservation, err := s.repo.GetRoomByID(ctx, int64(id))
 			// assert
 			require.EqualError(t, err, "assert.AnError general error for testing")
 
@@ -128,13 +131,12 @@ func Test_postgresDBRepo_GetRoomByID(t *testing.T) {
 	})
 }
 
-//s.mockDb.EXPECT().Exec(gomock.Any(), query, gomock.Any()).Return(pgconn.CommandTag{'1'}, nil)
-
 func Test_postgresDBRepo_GetRoomByName(t *testing.T) {
 	t.Parallel()
 
 	var (
 		name = "Lux"
+		ctx  = context.Background()
 	)
 
 	t.Run("success", func(t *testing.T) {
@@ -146,7 +148,7 @@ func Test_postgresDBRepo_GetRoomByName(t *testing.T) {
 		s.mockDb.EXPECT().Get(gomock.Any(), gomock.Any(), "SELECT id,name,cost,created_at,updated_at FROM rooms WHERE name=$1", gomock.Any()).Return(nil)
 
 		// act
-		reservation, err := s.repo.GetRoomByName(name)
+		reservation, err := s.repo.GetRoomByName(ctx, name)
 		// assert
 
 		require.NoError(t, err)
@@ -164,7 +166,7 @@ func Test_postgresDBRepo_GetRoomByName(t *testing.T) {
 			s.mockDb.EXPECT().Get(gomock.Any(), gomock.Any(), "SELECT id,name,cost,created_at,updated_at FROM rooms WHERE name=$1", gomock.Any()).Return(repository.ErrObjectNotFound)
 
 			// act
-			reservation, err := s.repo.GetRoomByName(name)
+			reservation, err := s.repo.GetRoomByName(ctx, name)
 			// assert
 			require.EqualError(t, err, "object not found")
 
@@ -180,7 +182,7 @@ func Test_postgresDBRepo_GetRoomByName(t *testing.T) {
 			s.mockDb.EXPECT().Get(gomock.Any(), gomock.Any(), "SELECT id,name,cost,created_at,updated_at FROM rooms WHERE name=$1", gomock.Any()).Return(assert.AnError)
 
 			// act
-			reservation, err := s.repo.GetRoomByName(name)
+			reservation, err := s.repo.GetRoomByName(ctx, name)
 			// assert
 			require.EqualError(t, err, "assert.AnError general error for testing")
 
@@ -203,6 +205,7 @@ func Test_postgresDBRepo_InsertReservation(t *testing.T) {
 	var (
 		reservation = models.Reservation{}
 		query       = `INSERT INTO reservations(start_date, end_date, room_id, created_at, updated_at) VALUES($1,$2,$3,$4,$5) RETURNING id;`
+		ctx         = context.Background()
 	)
 
 	t.Run("success", func(t *testing.T) {
@@ -216,7 +219,7 @@ func Test_postgresDBRepo_InsertReservation(t *testing.T) {
 		s.mockDb.EXPECT().ExecQueryRow(gomock.Any(), query, gomock.Any()).Return(row)
 
 		// act
-		id, err := s.repo.InsertReservation(&reservation)
+		id, err := s.repo.InsertReservation(ctx, &reservation)
 		// assert
 
 		require.NoError(t, err)
@@ -233,7 +236,7 @@ func Test_postgresDBRepo_InsertReservation(t *testing.T) {
 			s.mockDb.EXPECT().ExecQueryRow(gomock.Any(), query, gomock.Any()).Return(row)
 
 			// act
-			id, err := s.repo.InsertReservation(&reservation)
+			id, err := s.repo.InsertReservation(ctx, &reservation)
 			// assert
 			require.EqualError(t, err, "assert.AnError general error for testing")
 
@@ -248,6 +251,7 @@ func Test_postgresDBRepo_InsertRoom(t *testing.T) {
 	var (
 		room  = models.Room{}
 		query = `INSERT INTO rooms(name, cost, created_at, updated_at) VALUES($1,$2,$3,$4) RETURNING id;`
+		ctx   = context.Background()
 	)
 
 	t.Run("success", func(t *testing.T) {
@@ -261,7 +265,7 @@ func Test_postgresDBRepo_InsertRoom(t *testing.T) {
 		s.mockDb.EXPECT().ExecQueryRow(gomock.Any(), query, gomock.Any()).Return(row)
 
 		// act
-		id, err := s.repo.InsertRoom(&room)
+		id, err := s.repo.InsertRoom(ctx, &room)
 		// assert
 
 		require.NoError(t, err)
@@ -279,7 +283,7 @@ func Test_postgresDBRepo_InsertRoom(t *testing.T) {
 			s.mockDb.EXPECT().ExecQueryRow(gomock.Any(), query, gomock.Any()).Return(row)
 
 			// act
-			id, err := s.repo.InsertRoom(&room)
+			id, err := s.repo.InsertRoom(ctx, &room)
 			// assert
 			require.EqualError(t, err, "assert.AnError general error for testing")
 
@@ -294,6 +298,7 @@ func Test_postgresDBRepo_DeleteReservationByID(t *testing.T) {
 	var (
 		query       = "DELETE FROM reservations WHERE id=$1"
 		id    int64 = 1
+		ctx         = context.Background()
 	)
 
 	t.Run("success", func(t *testing.T) {
@@ -306,7 +311,7 @@ func Test_postgresDBRepo_DeleteReservationByID(t *testing.T) {
 		s.mockDb.EXPECT().Exec(gomock.Any(), query, gomock.Any()).Return(commandTag, nil)
 
 		// act
-		err := s.repo.DeleteReservationByID(id)
+		err := s.repo.DeleteReservationByID(ctx, id)
 		// assert
 
 		require.NoError(t, err)
@@ -321,7 +326,7 @@ func Test_postgresDBRepo_DeleteReservationByID(t *testing.T) {
 		s.mockDb.EXPECT().Exec(gomock.Any(), query, gomock.Any()).Return(commandTag, nil)
 
 		// Act
-		err := s.repo.DeleteReservationByID(id)
+		err := s.repo.DeleteReservationByID(ctx, id)
 
 		// Assert
 		assert.EqualError(t, err, "object not deleted")
@@ -334,6 +339,7 @@ func Test_postgresDBRepo_DeleteRoomByID(t *testing.T) {
 	var (
 		query       = "DELETE FROM rooms WHERE id=$1"
 		id    int64 = 1
+		ctx         = context.Background()
 	)
 
 	t.Run("success", func(t *testing.T) {
@@ -346,7 +352,7 @@ func Test_postgresDBRepo_DeleteRoomByID(t *testing.T) {
 		s.mockDb.EXPECT().Exec(gomock.Any(), query, gomock.Any()).Return(commandTag, nil)
 
 		// act
-		err := s.repo.DeleteRoomByID(id)
+		err := s.repo.DeleteRoomByID(ctx, id)
 		// assert
 
 		require.NoError(t, err)
@@ -361,7 +367,7 @@ func Test_postgresDBRepo_DeleteRoomByID(t *testing.T) {
 		s.mockDb.EXPECT().Exec(gomock.Any(), query, gomock.Any()).Return(commandTag, nil)
 
 		// Act
-		err := s.repo.DeleteRoomByID(id)
+		err := s.repo.DeleteRoomByID(ctx, id)
 
 		// Assert
 		assert.EqualError(t, err, "object not deleted")

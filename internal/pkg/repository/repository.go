@@ -3,19 +3,20 @@
 package repository
 
 import (
+	"context"
 	"homework-3/internal/pkg/models"
 )
 
 type DatabaseRepo interface {
-	InsertReservation(reservation *models.Reservation) (int64, error)
-	GetReservationByID(id int64) (*models.Reservation, error)
-	DeleteReservationByID(id int64) error
-	UpdateReservation(res *models.Reservation) error
-	InsertRoom(room *models.Room) (int64, error)
-	GetRoomByID(id int64) (*models.Room, error)
-	DeleteRoomByID(id int64) error
-	UpdateRoom(room *models.Room) error
-	GetRoomByName(name string) (*models.Room, error)
-	GetReservationsByRoomID(roomID int64) ([]*models.Reservation, error)
-	DeleteReservationsByRoomID(roomId int64) error
+	InsertReservation(ctx context.Context, reservation *models.Reservation) (int64, error)
+	GetReservationByID(ctx context.Context, id int64) (*models.Reservation, error)
+	DeleteReservationByID(ctx context.Context, id int64) error
+	UpdateReservation(ctx context.Context, res *models.Reservation) error
+	InsertRoom(ctx context.Context, room *models.Room) (int64, error)
+	GetRoomByID(ctx context.Context, id int64) (*models.Room, error)
+	DeleteRoomByID(ctx context.Context, id int64) error
+	UpdateRoom(ctx context.Context, room *models.Room) error
+	GetRoomByName(ctx context.Context, name string) (*models.Room, error)
+	GetReservationsByRoomID(ctx context.Context, roomID int64) ([]*models.Reservation, error)
+	DeleteReservationsByRoomID(ctx context.Context, roomId int64) error
 }

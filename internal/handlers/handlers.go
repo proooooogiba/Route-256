@@ -24,6 +24,7 @@ func NewService(repo domain.Repository, sender sender.Sender, parser parser.Pars
 }
 
 func (s *Service) GetRoomWithAllReservations(method string, roomID int64, sync bool) (*models.Room, []*models.Reservation, error) {
+
 	err := s.sender.Send(method, []byte(""), sync)
 	if err != nil {
 		return nil, nil, err

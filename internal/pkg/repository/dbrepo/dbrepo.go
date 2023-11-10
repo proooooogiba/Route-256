@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"github.com/jackc/pgx/v4"
+	"github.com/opentracing/opentracing-go"
 	"homework-3/internal/pkg/db"
 	"homework-3/internal/pkg/models"
 	"homework-3/internal/pkg/repository"
@@ -19,8 +20,14 @@ func NewPostgresRepo(db db.DBops) *PostgresDBRepo {
 	return &PostgresDBRepo{db: db}
 }
 
-func (r *PostgresDBRepo) InsertReservation(reservation *models.Reservation) (int64, error) {
-	ctx, cancel := context.WithCancel(context.Background())
+func (r *PostgresDBRepo) InsertReservation(ctx context.Context, reservation *models.Reservation) (int64, error) {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"db: insert-reservation",
+	)
+	defer span.Finish()
+
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	var newID int64
@@ -34,8 +41,14 @@ func (r *PostgresDBRepo) InsertReservation(reservation *models.Reservation) (int
 	return newID, nil
 }
 
-func (r *PostgresDBRepo) GetReservationByID(id int64) (*models.Reservation, error) {
-	ctx, cancel := context.WithCancel(context.Background())
+func (r *PostgresDBRepo) GetReservationByID(ctx context.Context, id int64) (*models.Reservation, error) {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"db: get-reservation-by-id",
+	)
+	defer span.Finish()
+
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	var res models.Reservation
 
@@ -49,8 +62,14 @@ func (r *PostgresDBRepo) GetReservationByID(id int64) (*models.Reservation, erro
 	return &res, nil
 }
 
-func (r *PostgresDBRepo) DeleteReservationByID(id int64) error {
-	ctx, cancel := context.WithCancel(context.Background())
+func (r *PostgresDBRepo) DeleteReservationByID(ctx context.Context, id int64) error {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"db: delete-reservation-by-id",
+	)
+	defer span.Finish()
+
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	result, err := r.db.Exec(ctx, "DELETE FROM reservations WHERE id=$1", id)
@@ -65,8 +84,14 @@ func (r *PostgresDBRepo) DeleteReservationByID(id int64) error {
 	return nil
 }
 
-func (r *PostgresDBRepo) UpdateReservation(res *models.Reservation) error {
-	ctx, cancel := context.WithCancel(context.Background())
+func (r *PostgresDBRepo) UpdateReservation(ctx context.Context, res *models.Reservation) error {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"db: update-reservation-by-id",
+	)
+	defer span.Finish()
+
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	result, err := r.db.Exec(ctx, "UPDATE reservations set start_date = $1, end_date = $2, room_id = $3, updated_at = $4 where id = $5",
 		res.StartDate,
@@ -83,8 +108,14 @@ func (r *PostgresDBRepo) UpdateReservation(res *models.Reservation) error {
 	return nil
 }
 
-func (r *PostgresDBRepo) InsertRoom(room *models.Room) (int64, error) {
-	ctx, cancel := context.WithCancel(context.Background())
+func (r *PostgresDBRepo) InsertRoom(ctx context.Context, room *models.Room) (int64, error) {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"db: insert-room",
+	)
+	defer span.Finish()
+
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	var newID int64
@@ -95,8 +126,14 @@ func (r *PostgresDBRepo) InsertRoom(room *models.Room) (int64, error) {
 	return newID, nil
 }
 
-func (r *PostgresDBRepo) GetRoomByID(id int64) (*models.Room, error) {
-	ctx, cancel := context.WithCancel(context.Background())
+func (r *PostgresDBRepo) GetRoomByID(ctx context.Context, id int64) (*models.Room, error) {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"db: get-room-by-id",
+	)
+	defer span.Finish()
+
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	var room models.Room
 
@@ -112,8 +149,14 @@ func (r *PostgresDBRepo) GetRoomByID(id int64) (*models.Room, error) {
 	return &room, nil
 }
 
-func (r *PostgresDBRepo) GetRoomByName(name string) (*models.Room, error) {
-	ctx, cancel := context.WithCancel(context.Background())
+func (r *PostgresDBRepo) GetRoomByName(ctx context.Context, name string) (*models.Room, error) {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"db: get-room-by-name",
+	)
+	defer span.Finish()
+
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	var room models.Room
 
@@ -129,8 +172,14 @@ func (r *PostgresDBRepo) GetRoomByName(name string) (*models.Room, error) {
 	return &room, nil
 }
 
-func (r *PostgresDBRepo) DeleteRoomByID(id int64) error {
-	ctx, cancel := context.WithCancel(context.Background())
+func (r *PostgresDBRepo) DeleteRoomByID(ctx context.Context, id int64) error {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"db: delete-room-by-id",
+	)
+	defer span.Finish()
+
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	result, err := r.db.Exec(ctx, "DELETE FROM rooms WHERE id=$1", id)
@@ -145,8 +194,14 @@ func (r *PostgresDBRepo) DeleteRoomByID(id int64) error {
 	return nil
 }
 
-func (r *PostgresDBRepo) UpdateRoom(room *models.Room) error {
-	ctx, cancel := context.WithCancel(context.Background())
+func (r *PostgresDBRepo) UpdateRoom(ctx context.Context, room *models.Room) error {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"db: update-room",
+	)
+	defer span.Finish()
+
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	result, err := r.db.Exec(ctx, "UPDATE rooms set name = $1, cost = $2, updated_at = $3 where id = $4",
@@ -163,12 +218,18 @@ func (r *PostgresDBRepo) UpdateRoom(room *models.Room) error {
 	return nil
 }
 
-func (r *PostgresDBRepo) GetReservationsByRoomID(roomID int64) ([]*models.Reservation, error) {
-	ctx, cancel := context.WithCancel(context.Background())
+func (r *PostgresDBRepo) GetReservationsByRoomID(ctx context.Context, roomID int64) ([]*models.Reservation, error) {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"db: get-reservations-by-room-id",
+	)
+	defer span.Finish()
+
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	var reservations []*models.Reservation
 
-	_, err := r.GetRoomByID(roomID)
+	_, err := r.GetRoomByID(ctx, roomID)
 	if err != nil {
 		return nil, err
 	}
@@ -201,8 +262,13 @@ func (r *PostgresDBRepo) GetReservationsByRoomID(roomID int64) ([]*models.Reserv
 	return reservations, nil
 }
 
-func (r *PostgresDBRepo) DeleteReservationsByRoomID(roomID int64) error {
-	ctx, cancel := context.WithCancel(context.Background())
+func (r *PostgresDBRepo) DeleteReservationsByRoomID(ctx context.Context, roomID int64) error {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"db: delete-reservations-by-room-id",
+	)
+	defer span.Finish()
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	_, err := r.db.Exec(ctx, "DELETE FROM reservations WHERE room_id=$1", roomID)

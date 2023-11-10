@@ -1,7 +1,9 @@
 package hotel_repo
 
 import (
+	"context"
 	"errors"
+	"github.com/opentracing/opentracing-go"
 	"homework-3/internal/pkg/domain"
 	"homework-3/internal/pkg/models"
 	"homework-3/internal/pkg/repository"
@@ -18,8 +20,14 @@ func NewRepo(db repository.DatabaseRepo) *Hotel {
 	}
 }
 
-func (m *Hotel) GetRoomWithAllReservations(id int64) (*models.Room, []*models.Reservation, error) {
-	room, err := m.db.GetRoomByID(id)
+func (m *Hotel) GetRoomWithAllReservations(ctx context.Context, id int64) (*models.Room, []*models.Reservation, error) {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"domain: get-room-with-all-reservations",
+	)
+	defer span.Finish()
+
+	room, err := m.db.GetRoomByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrObjectNotFound) {
 			return nil, nil, domain.ErrRoomNotFound
@@ -27,15 +35,21 @@ func (m *Hotel) GetRoomWithAllReservations(id int64) (*models.Room, []*models.Re
 		return nil, nil, domain.ErrInternalServer
 	}
 
-	reservations, err := m.db.GetReservationsByRoomID(id)
+	reservations, err := m.db.GetReservationsByRoomID(ctx, id)
 	if err != nil {
 		return nil, nil, domain.ErrInternalServer
 	}
 	return room, reservations, nil
 }
 
-func (m *Hotel) CreateRoom(room models.Room) (int64, error) {
-	_, err := m.db.GetRoomByName(room.Name)
+func (m *Hotel) CreateRoom(ctx context.Context, room models.Room) (int64, error) {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"domain: create-room",
+	)
+	defer span.Finish()
+
+	_, err := m.db.GetRoomByName(ctx, room.Name)
 
 	if err == nil {
 		return 0, domain.ErrRoomAlreadyExists
@@ -44,16 +58,24 @@ func (m *Hotel) CreateRoom(room models.Room) (int64, error) {
 	if !errors.Is(err, repository.ErrObjectNotFound) {
 		return 0, domain.ErrInternalServer
 	}
+	span.Finish()
 
-	roomID, err := m.db.InsertRoom(&room)
+	roomID, err := m.db.InsertRoom(ctx, &room)
 	if err != nil {
 		return 0, domain.ErrInternalServer
 	}
+
 	return roomID, nil
 }
 
-func (m *Hotel) UpdateRoom(room models.Room) error {
-	_, err := m.db.GetRoomByID(room.ID)
+func (m *Hotel) UpdateRoom(ctx context.Context, room models.Room) error {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"domain: update-room",
+	)
+	defer span.Finish()
+
+	_, err := m.db.GetRoomByID(ctx, room.ID)
 	if err != nil {
 		if errors.Is(err, repository.ErrObjectNotFound) {
 			//return http.StatusNotFound
@@ -62,7 +84,7 @@ func (m *Hotel) UpdateRoom(room models.Room) error {
 		return domain.ErrInternalServer
 	}
 
-	err = m.db.UpdateRoom(&room)
+	err = m.db.UpdateRoom(ctx, &room)
 	if err != nil {
 		return domain.ErrInternalServer
 		//return http.StatusInternalServerError
@@ -71,8 +93,14 @@ func (m *Hotel) UpdateRoom(room models.Room) error {
 	return nil
 }
 
-func (m *Hotel) DeleteRoomWithAllReservations(id int64) error {
-	err := m.db.DeleteRoomByID(id)
+func (m *Hotel) DeleteRoomWithAllReservations(ctx context.Context, id int64) error {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"domain: delete-room-with-all-reservations",
+	)
+	defer span.Finish()
+
+	err := m.db.DeleteRoomByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrObjectNotFound) {
 			return domain.ErrRoomNotFound
@@ -80,7 +108,7 @@ func (m *Hotel) DeleteRoomWithAllReservations(id int64) error {
 		return domain.ErrInternalServer
 	}
 
-	err = m.db.DeleteReservationsByRoomID(id)
+	err = m.db.DeleteReservationsByRoomID(ctx, id)
 	if err != nil {
 		return domain.ErrInternalServer
 	}
@@ -88,8 +116,14 @@ func (m *Hotel) DeleteRoomWithAllReservations(id int64) error {
 	return nil
 }
 
-func (m *Hotel) GetReservation(key int64) (*models.Reservation, error) {
-	res, err := m.db.GetReservationByID(key)
+func (m *Hotel) GetReservation(ctx context.Context, key int64) (*models.Reservation, error) {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"domain: get-reservation",
+	)
+	defer span.Finish()
+
+	res, err := m.db.GetReservationByID(ctx, key)
 	if err != nil {
 		if errors.Is(err, repository.ErrObjectNotFound) {
 			return nil, domain.ErrReservationNotFound
@@ -99,8 +133,14 @@ func (m *Hotel) GetReservation(key int64) (*models.Reservation, error) {
 	return res, nil
 }
 
-func (m *Hotel) CreateReservation(res models.Reservation) (int64, error) {
-	_, err := m.db.GetRoomByID(res.RoomID)
+func (m *Hotel) CreateReservation(ctx context.Context, res models.Reservation) (int64, error) {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"domain: create-reservation",
+	)
+	defer span.Finish()
+
+	_, err := m.db.GetRoomByID(ctx, res.RoomID)
 	if err != nil {
 		if errors.Is(err, repository.ErrObjectNotFound) {
 			return 0, domain.ErrRoomNotFound
@@ -108,37 +148,49 @@ func (m *Hotel) CreateReservation(res models.Reservation) (int64, error) {
 		return 0, domain.ErrInternalServer
 	}
 
-	resID, err := m.db.InsertReservation(&res)
+	resID, err := m.db.InsertReservation(ctx, &res)
 	if err != nil {
 		return 0, domain.ErrInternalServer
 	}
 	return resID, nil
 }
 
-func (m *Hotel) DeleteReservation(id int64) error {
-	err := m.db.DeleteReservationByID(id)
+func (m *Hotel) UpdateReservation(ctx context.Context, res models.Reservation) error {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"domain: update-reservation",
+	)
+	defer span.Finish()
+
+	_, err := m.db.GetReservationByID(ctx, res.ID)
 	if err != nil {
 		if errors.Is(err, repository.ErrObjectNotFound) {
 			return domain.ErrReservationNotFound
 		}
 		return domain.ErrInternalServer
 	}
+
+	err = m.db.UpdateReservation(ctx, &res)
+	if err != nil {
+		return domain.ErrInternalServer
+	}
+
 	return nil
 }
 
-func (m *Hotel) UpdateReservation(res models.Reservation) error {
-	_, err := m.db.GetReservationByID(res.ID)
+func (m *Hotel) DeleteReservation(ctx context.Context, id int64) error {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"domain: delete-reservation",
+	)
+	defer span.Finish()
+
+	err := m.db.DeleteReservationByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrObjectNotFound) {
 			return domain.ErrReservationNotFound
 		}
 		return domain.ErrInternalServer
 	}
-
-	err = m.db.UpdateReservation(&res)
-	if err != nil {
-		return domain.ErrInternalServer
-	}
-
 	return nil
 }

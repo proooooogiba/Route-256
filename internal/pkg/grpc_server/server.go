@@ -2,6 +2,7 @@ package grpc_server
 
 import (
 	"context"
+	"github.com/opentracing/opentracing-go"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"homework-3/internal/grpc_handlers"
 	"homework-3/internal/pkg/models"
@@ -21,6 +22,12 @@ func NewImplementation(service *grpc_handlers.Service) *Transport {
 }
 
 func (t *Transport) GetRoomWithAllReservations(ctx context.Context, in *pb.GetRoomRequest) (*pb.GetRoomResponse, error) {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"app: get-room-with-all-reservations",
+	)
+	defer span.Finish()
+
 	room, reservations, err := t.hotelService.GetRoomWithAllReservations(ctx, in.Id)
 	if err != nil {
 		return nil, err
@@ -53,6 +60,12 @@ func (t *Transport) GetRoomWithAllReservations(ctx context.Context, in *pb.GetRo
 }
 
 func (t *Transport) CreateRoom(ctx context.Context, in *pb.CreateRoomRequest) (*pb.CreateRoomResponse, error) {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"app: create-room",
+	)
+	defer span.Finish()
+
 	room := models.Room{
 		Name:      in.Name,
 		Cost:      in.Cost,
@@ -71,6 +84,12 @@ func (t *Transport) CreateRoom(ctx context.Context, in *pb.CreateRoomRequest) (*
 }
 
 func (t *Transport) UpdateRoom(ctx context.Context, in *pb.UpdateRoomRequest) (*pb.UpdateRoomResponse, error) {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"app: update-room",
+	)
+	defer span.Finish()
+
 	room := models.Room{
 		ID:        in.Id,
 		Name:      in.Name,
@@ -89,6 +108,12 @@ func (t *Transport) UpdateRoom(ctx context.Context, in *pb.UpdateRoomRequest) (*
 }
 
 func (t *Transport) DeleteRoomWithAllReservations(ctx context.Context, in *pb.DeleteRoomRequest) (*pb.DeleteRoomResponse, error) {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"app: delete-room-with-all-reservations",
+	)
+	defer span.Finish()
+
 	err := t.hotelService.DeleteRoomWithAllReservations(ctx, in.Id)
 	if err != nil {
 		return nil, err
@@ -100,6 +125,12 @@ func (t *Transport) DeleteRoomWithAllReservations(ctx context.Context, in *pb.De
 }
 
 func (t *Transport) CreateReservation(ctx context.Context, in *pb.CreateReservationRequest) (*pb.CreateReservationResponse, error) {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"app: create-reservation",
+	)
+	defer span.Finish()
+
 	layout := "2006-01-02"
 	startDate, err := time.Parse(layout, in.StartDate)
 	if err != nil {
@@ -130,6 +161,12 @@ func (t *Transport) CreateReservation(ctx context.Context, in *pb.CreateReservat
 }
 
 func (t *Transport) GetReservation(ctx context.Context, in *pb.GetReservationRequest) (*pb.GetReservationResponse, error) {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"app: get-reservation",
+	)
+	defer span.Finish()
+
 	room, err := t.hotelService.GetReservation(ctx, in.Id)
 	if err != nil {
 		return nil, err
@@ -146,6 +183,12 @@ func (t *Transport) GetReservation(ctx context.Context, in *pb.GetReservationReq
 }
 
 func (t *Transport) UpdateReservation(ctx context.Context, in *pb.UpdateReservationRequest) (*pb.UpdateReservationResponse, error) {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"app: update-reservation",
+	)
+	defer span.Finish()
+
 	layout := "2006-01-02"
 	startDate, err := time.Parse(layout, in.StartDate)
 	if err != nil {
@@ -176,6 +219,12 @@ func (t *Transport) UpdateReservation(ctx context.Context, in *pb.UpdateReservat
 }
 
 func (t *Transport) DeleteReservation(ctx context.Context, in *pb.DeleteReservationRequest) (*pb.DeleteReservationResponse, error) {
+	span, ctx := opentracing.StartSpanFromContext(
+		ctx,
+		"app: delete-reservation",
+	)
+	defer span.Finish()
+
 	err := t.hotelService.DeleteReservation(ctx, in.Id)
 	if err != nil {
 		return nil, err

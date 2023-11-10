@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"github.com/opentracing/opentracing-go"
 	"github.com/spf13/viper"
+	"github.com/uber/jaeger-client-go/config"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -16,6 +18,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"time"
 )
 
 func main() {
@@ -31,6 +34,26 @@ func main() {
 	logger.SetGlobal(
 		zapLogger.With(zap.String("server", "gRPC")),
 	)
+
+	cfg := config.Configuration{
+		Sampler: &config.SamplerConfig{
+			Type:  "const",
+			Param: 1,
+		},
+		Reporter: &config.ReporterConfig{
+			LogSpans:            false,
+			BufferFlushInterval: 1 * time.Second,
+		},
+	}
+	tracer, closer, err := cfg.New(
+		"hotel-service",
+	)
+	if err != nil {
+		logger.Errorf(ctx, "can't create traces", err)
+	}
+	defer closer.Close()
+
+	opentracing.SetGlobalTracer(tracer)
 
 	db, err := db.NewDB(ctx)
 	if err != nil {

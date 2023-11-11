@@ -3,6 +3,7 @@ package logger
 import (
 	"context"
 	"go.uber.org/zap"
+	"os"
 )
 
 var defaultLogger *zap.Logger
@@ -36,4 +37,8 @@ func Infof(ctx context.Context, format string, args ...any) {
 
 func Errorf(ctx context.Context, format string, args ...any) {
 	FromContext(ctx).Sugar().Errorf(format, args...)
+}
+func Fatalf(ctx context.Context, format string, args ...any) {
+	FromContext(ctx).Sugar().Errorf(format, args...)
+	os.Exit(1)
 }

@@ -5,16 +5,54 @@ import "google/protobuf/timestamp.proto";
 package hotel;
 option go_package = "internal/pkg/pb";
 
-service HotelService {
-  rpc CreateRoom (CreateRoomRequest) returns (CreateRoomResponse) {}
-  rpc GetRoomWithAllReservations (GetRoomRequest) returns (GetRoomResponse) {}
-  rpc UpdateRoom (UpdateRoomRequest) returns (UpdateRoomResponse) {}
-  rpc DeleteRoomWithAllReservations (DeleteRoomRequest) returns (DeleteRoomResponse) {}
+import "google/api/annotations.proto";
 
-  rpc CreateReservation (CreateReservationRequest) returns (CreateReservationResponse) {}
-  rpc GetReservation (GetReservationRequest) returns (GetReservationResponse) {}
-  rpc UpdateReservation (UpdateReservationRequest) returns (UpdateReservationResponse) {}
-  rpc DeleteReservation (DeleteReservationRequest) returns (DeleteReservationResponse) {}
+service HotelService {
+  rpc CreateRoom (CreateRoomRequest) returns (CreateRoomResponse) {
+    option (google.api.http) = {
+      post: "/room"
+      body: "*"
+    };
+  }
+  rpc GetRoomWithAllReservations (GetRoomRequest) returns (GetRoomResponse) {
+    option (google.api.http) = {
+      get: "/room/{id}"
+    };
+  }
+  rpc UpdateRoom (UpdateRoomRequest) returns (UpdateRoomResponse) {
+    option (google.api.http) = {
+      put: "/room"
+      body: "*"
+    };
+  }
+  rpc DeleteRoomWithAllReservations (DeleteRoomRequest) returns (DeleteRoomResponse) {
+    option (google.api.http) = {
+      delete: "/room/{id}"
+    };
+  }
+
+  rpc CreateReservation (CreateReservationRequest) returns (CreateReservationResponse) {
+    option (google.api.http) = {
+      post: "/reservation"
+      body: "*"
+    };
+  }
+  rpc GetReservation (GetReservationRequest) returns (GetReservationResponse) {
+    option (google.api.http) = {
+      get: "/reservation/{id}"
+    };
+  }
+  rpc UpdateReservation (UpdateReservationRequest) returns (UpdateReservationResponse) {
+    option (google.api.http) = {
+      put: "/reservation"
+      body: "*"
+    };
+  }
+  rpc DeleteReservation (DeleteReservationRequest) returns (DeleteReservationResponse) {
+    option (google.api.http) = {
+      delete: "/reservation/{id}"
+    };
+  }
 }
 
 message CreateRoomRequest {

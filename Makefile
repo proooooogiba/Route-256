@@ -40,3 +40,11 @@ down:
 
 run:
 	go run ./cmd/web/*.go
+gen-proto:
+	protoc --go_out=. --go-grpc_out=. api/hotel.proto
+
+gen-proto-REST:
+	protoc -I . --grpc-gateway_out ./internal/pkg/pb/ \
+        --grpc-gateway_opt paths=source_relative \
+        --grpc-gateway_opt generate_unbound_methods=true \
+        ./api/hotel.proto

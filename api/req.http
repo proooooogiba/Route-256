@@ -1,0 +1,58 @@
+### создание команты
+POST localhost:9000/room
+Content-Type: application/json
+
+{
+  "name": "Economy",
+  "cost": 100.0
+}
+
+### получение команты
+GET localhost:9000/room/1
+Content-Type: application/json
+
+### обновление комнаты
+PUT localhost:9000/room
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "Updated Economy",
+  "cost": 100.0
+}
+
+### удаление комнаты
+DELETE localhost:9000/room/1
+Content-Type: application/json
+
+
+### создание бронирования
+POST localhost:9000/reservation
+Content-Type: application/json
+
+{
+  "start_date": "2023-09-15",
+  "end_date": "2023-11-15",
+  "room_id":1
+}
+
+### получение бронирования
+GET localhost:9000/reservation/1
+Content-Type: application/json
+
+### обновление бронирования
+PUT localhost:9000/reservation
+Content-Type: application/json
+
+{
+  "id": 1,
+  "start_date": "2023-09-15",
+  "end_date": "2023-10-15",
+  "room_id":1
+}
+
+### удаление бронирования
+DELETE localhost:9000/reservation/1
+Content-Type: application/json
+
+###

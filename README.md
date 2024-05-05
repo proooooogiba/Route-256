@@ -27,6 +27,6 @@
 8. [gRPC](https://github.com/proooooogiba/Route-256/tree/devtask/GOJHW-8)
 
 ## Прочее
-Результат: 106/107 - топ 5% выпуска
+Результат: 106/107
 
 [Страница курса](https://route256.ozon.ru/go-developer-junior)
